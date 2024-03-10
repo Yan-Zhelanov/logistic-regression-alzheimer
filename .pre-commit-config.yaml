@@ -1,0 +1,69 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: check-ast
+      - id: check-executables-have-shebangs
+      - id: check-yaml
+      - id: double-quote-string-fixer
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+  - repo: https://github.com/pre-commit/pygrep-hooks
+    rev: v1.7.0
+    hooks:
+      - id: python-check-blanket-noqa
+
+  - repo: https://github.com/pre-commit/mirrors-autopep8
+    rev: v1.5.4
+    hooks:
+      - id: autopep8
+
+  - repo: https://github.com/asottile/add-trailing-comma
+    rev: v2.5.1
+    hooks:
+      - id: add-trailing-comma
+        args: [--py36-plus]
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+
+  - repo: https://github.com/pycqa/flake8
+    rev: "4.0.1"
+    hooks:
+      - id: flake8
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.4.1
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - types-requests
+          - types-paramiko
+        exclude: tests
+
+  - repo: https://github.com/best-doctor/pre-commit-hooks
+    rev: v1.0.4
+    hooks:
+      - id: mccabe-complexity
+        name: Check functions complexity
+        language: python
+      - id: expr-complexity
+        name: Check expressions complexity
+        exclude: /samples/
+        language: python
+      - id: no-asserts
+        name: Check no asserts in code
+        language: python
+        exclude: "tests"
+      - id: test-naming
+        name: Check if tests named appropriately
+        language: python
+      - id: line-count
+        name: Check number of lines in python files
+        language: python
+      - id: old-style-annotations
+        name: Check old-style annotations
+        language: python
