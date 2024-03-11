@@ -6,7 +6,7 @@ ROOT_DIR = os.path.dirname(os.path.dirname(__file__))
 
 
 class DataConfig(object):
-    PATH_TO_DATA = os.path.join(ROOT_DIR, 'dataset')
+    PATH_TO_DATA = os.path.join(ROOT_DIR, 'dataset', 'images')
     ANNOTATION_FILENAME = 'data_info.csv'
     PREPROCESS_TYPE = PreprocessingType.NORMALIZATION
     PREPROCESS_PARAMS = {'a': -1, 'b': 1}
