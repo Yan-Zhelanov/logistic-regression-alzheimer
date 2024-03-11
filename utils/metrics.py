@@ -73,8 +73,8 @@ def get_confusion_matrix(
     """Get confusion matrix.
 
     Confusion matrix C with shape KxK:
-        c[i, j] - number of observations known to be in class i and predicted to be in class j,
-
+        c[i, j] - number of observations known to be in class i and predicted
+        to be in class j,
         where:
             - K is the number of classes.
 
@@ -85,8 +85,10 @@ def get_confusion_matrix(
     Returns:
         np.ndarray: Confusion matrix.
     """
-    # TODO: Implement computation of confusion matrix
-    return np.array([])
+    count_classes = len(np.unique(targets))
+    confusion_matrix = np.zeros((count_classes, count_classes))
+    np.add.at(confusion_matrix, (targets, predictions), 1)
+    return confusion_matrix
 
 
 def get_precision_recall_curve(
