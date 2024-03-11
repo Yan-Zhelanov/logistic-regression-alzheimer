@@ -77,5 +77,6 @@ class ImageDataPreprocessing(object):
         Returns:
             np.ndarray: Flattened features.
         """
-        # TODO: Reshape x from (N, H, W) to shape (N, HxW)
-        return features
+        return features.reshape(
+            features.shape[0], features.shape[1] * features.shape[2],
+        )
