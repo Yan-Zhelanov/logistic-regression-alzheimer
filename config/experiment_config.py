@@ -1,34 +1,30 @@
 import os
 
-from easydict import EasyDict
+from config.data_config import ROOT_DIR
+from config.params_config import ParamsConfig
 
-from config.params_config import params_config
 
-experiment_config = EasyDict()
+class ExperimentConfig(object):
+    LOGS_DIR = os.path.join(ROOT_DIR, 'experiment_logs')
+    LOSS_NAME = 'CrossEntropy'
+    METRIC_NAME = 'AP'
+    EXPERIMENT_NAME = f'{ParamsConfig.ACTIVATION_FUNC}_regression'
+    PARAMS_DIR = os.path.join(LOGS_DIR, EXPERIMENT_NAME, 'params')
+    PLOTS_DIR = os.path.join(LOGS_DIR, EXPERIMENT_NAME, 'plots')
+    CHECKPOINTS_DIR = os.path.join(LOGS_DIR, EXPERIMENT_NAME, 'checkpoints')
+    SAVE_MODEL_ITER = 10
+    LOAD_MODEL = False
+    LOAD_MODEL_EPOCH = -1
+    LOAD_MODEL_PATH = os.path.join(
+        CHECKPOINTS_DIR, f'checkpoint_{LOAD_MODEL_EPOCH}.pickle',
+    )
+    EXPERIMENT_PARAMS = {
+        'learning_rate': ParamsConfig.LEARNING_RATE,
+        'num_iterations': ParamsConfig.NUM_ITERATIONS,
+    }
 
-ROOT_DIR = os.path.dirname(os.path.dirname(__file__))
 
-experiment_config.logs_dir = os.path.join(ROOT_DIR, 'experiment_logs')
-experiment_config.loss_name = 'CrossEntropy'
-experiment_config.metric_name = 'AP'
-experiment_config.experiment_name = f'{params_config.activation_func}_regression'
-
-experiment_config.params_dir = os.path.join(experiment_config.logs_dir, experiment_config.experiment_name, 'params')
-experiment_config.plots_dir = os.path.join(experiment_config.logs_dir, experiment_config.experiment_name, 'plots')
-
-experiment_config.checkpoints_dir = os.path.join(experiment_config.logs_dir, experiment_config.experiment_name,
-                                                 'checkpoints')
-experiment_config.save_model_iter = 10
-
-experiment_config.load_model = False
-experiment_config.load_model_epoch = -1
-experiment_config.load_model_path = os.path.join(experiment_config.checkpoints_dir,
-                                                 f'checkpoint_{experiment_config.load_model_epoch}.pickle')
-
-experiment_config.experiment_params = {'learning_rate': params_config.learning_rate,
-                                       'num_iterations': params_config.num_iterations}
-
-os.makedirs(experiment_config.logs_dir, exist_ok=True)
-os.makedirs(experiment_config.checkpoints_dir, exist_ok=True)
-os.makedirs(experiment_config.params_dir, exist_ok=True)
-os.makedirs(experiment_config.plots_dir, exist_ok=True)
+os.makedirs(ExperimentConfig.LOGS_DIR, exist_ok=True)
+os.makedirs(ExperimentConfig.CHECKPOINTS_DIR, exist_ok=True)
+os.makedirs(ExperimentConfig.PARAMS_DIR, exist_ok=True)
+os.makedirs(ExperimentConfig.PLOTS_DIR, exist_ok=True)
