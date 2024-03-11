@@ -62,8 +62,9 @@ def get_recall_score(targets: np.ndarray, predictions: np.ndarray) -> float:
     Returns:
         float: Recall score.
     """
-    # TODO: Implement computation of recall
-    return 1.0
+    true_positive = np.sum((targets == predictions)[targets == 1])
+    false_negative = np.sum((targets != predictions)[targets == 1])
+    return true_positive / (true_positive + false_negative)
 
 
 def get_confusion_matrix(
