@@ -1,85 +1,84 @@
 import numpy as np
 
+from config.data_config import DataConfig
 from utils.enums import PreprocessingType
 
+IntOrFloat = int | float
 
-class ImageDataPreprocessing:
+
+class ImageDataPreprocessing(object):
     """A class for data preprocessing."""
 
-    def __init__(self, preprocess_type: PreprocessingType, preprocess_params=None):
-        self.preprocess_type = preprocess_type
+    def __init__(
+        self,
+        preprocess_type: PreprocessingType,
+        data_config: DataConfig,
+    ) -> None:
+        self._preprocess_type = preprocess_type
+        self._data_config = data_config
+        self._min: IntOrFloat = 0
+        self._max: IntOrFloat = 0
+        self._mean: IntOrFloat = 0
+        self._std: IntOrFloat = 0
 
-        # A dictionary with the following keys and values:
-        #    - {'min': min values, 'max': max values} when preprocess_type is PreprocessingType.normalization
-        #    - {'mean': mean values, 'std': std values} when preprocess_type is PreprocessingType.standardization
-        self.params = {}
-
-        # Initialization of additional parameters
-        if isinstance(preprocess_params, dict):
-            self.params.update(
-                {key: value for key, value in preprocess_params.items()},
-            )
-
-        # Select the preprocess function according to self.preprocess_type
-        self.preprocess_func = getattr(self, self.preprocess_type.name)
-
-    def normalization(self, x: np.ndarray, init=False):
-        """Transforms x by scaling each pixel to a range [a, b] with self.params['min'] and self.params['max']
+    def fit(self, features: np.ndarray) -> None:
+        """Initialize preprocessing function on training data.
 
         Args:
-            x: array of images
-            init: initialization flag
+            features: feature array.
+        """
+        flattened_features = self._flatten(features)
+        self._mean = np.mean(flattened_features)
+        self._std = np.std(flattened_features)
+        self._min = np.min(flattened_features)
+        self._max = np.max(flattened_features)
+
+    def preprocess(self, features: np.ndarray) -> np.ndarray:
+        """Return preprocessed data."""
+        flattened_features = self._flatten(features)
+        if self._preprocess_type is PreprocessingType.NORMALIZATION:
+            return self._normalization(flattened_features)
+        return self._standardization(flattened_features)
+
+    def _normalization(self, features: np.ndarray) -> np.ndarray:
+        """Transform features by scaling each pixel.
+
+        Scaling occurs in a range [a, b] with the min and max params.
+
+        Args:
+            features: Array of images.
 
         Returns:
-            normalized_x (numpy.array)
+            np.ndarray: Normilized features.
         """
-        if init:
-            # TODO: calculate min and max for all pixels
-            #       store the values in self.params['min'] and self.params['max']
-            pass
-
-        a = self.params.get('a', -1)
-        b = self.params.get('b', 1)
-
+        lower_bound = self._data_config.PREPROCESS_LOWER_BOUND
+        upper_bound = self._data_config.PREPROCESS_UPPER_BOUND
         # TODO: implement data normalization
         #       normalized_x = a + (b - a) * (x - self.params['min']) / (self.params['max'] - self.params['min']),
         #       where a = self.params['a'], b = self.params['b']
-        raise NotImplementedError
+        return features
 
-    def standardization(self, x: np.ndarray, init=False):
-        """Standardizes x with self.params['mean'] and self.params['std']
+    def _standardization(self, features: np.ndarray) -> np.ndarray:
+        """Standardize features with the mean and std params.
 
         Args:
-            x: array of images
-            init: initialization flag
+            features: Array of images.
 
         Returns:
-            standardized_x (numpy.array)
+            np.ndarray: Standardized features.
         """
-        if init:
-            # TODO: calculate mean and std of all pixels in x with np.mean, np.std
-            #       store the values in self.params['mean'] and self.params['std']
-            pass
-
         # TODO: implement data standardization
         #       standardized_x = (x - self.params['mean']) / self.params['std']
-        raise NotImplementedError
+        return features
 
-    def flatten(self, x: np.ndarray):
-        """Reshaping x into a matrix of shape (N, HxW)"""
+    def _flatten(self, features: np.ndarray) -> np.ndarray:
+        """Reshape features into a matrix of shape (N, HxW).
+
+        Args:
+            features: Array of images.
+
+        Returns:
+            np.ndarray: Flattened features.
+        """
         # TODO: Reshape x from (N, H, W) to shape (N, HxW)
-        raise NotImplementedError
-
-    def train(self, x: np.ndarray):
-        """Initializes preprocessing function on training data."""
-        flattened_x = self.flatten(x)
-        return self.preprocess_func(flattened_x, init=True)
-
-    def preprocess(self, features: np.ndarray):
-        """Returns preprocessed data."""
-        if self.params is None:
-            raise Exception(
-                f"{self.preprocess_type.name} instance is not trained yet. Please call 'train' first.",
-            )
-        flattened_x = self.flatten(features)
-        return self.preprocess_func(flattened_x, init=False)
+        return features
