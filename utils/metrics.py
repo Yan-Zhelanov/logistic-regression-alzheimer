@@ -20,8 +20,7 @@ def get_accuracy_score(targets: np.ndarray, predictions: np.ndarray) -> float:
     Returns:
         float: Accuracy score.
     """
-    # TODO: Implement computation of accuracy
-    pass
+    return np.mean(targets == predictions)
 
 
 def get_precision_score(targets: np.ndarray, predictions: np.ndarray) -> float:
