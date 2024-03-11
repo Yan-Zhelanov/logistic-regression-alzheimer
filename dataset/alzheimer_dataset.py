@@ -2,8 +2,6 @@ import os
 
 import cv2
 import numpy as np
-from PIL import Image
-from skimage import io
 
 from config.data_config import DataConfig
 from utils.common_functions import read_dataframe_file
@@ -36,7 +34,9 @@ class AlzheimerDatasetPreprocessor(object):
         """Return preprocessed data."""
         return self._data[set_type]
 
-    def _data_preprocessing(self, set_type: SetType) -> dict[str, np.ndarray]:
+    def _data_preprocessing(
+        self, set_type: SetType,
+    ) -> dict[str, np.ndarray | list[str]]:
         """Preparing data.
 
         Args:
@@ -67,5 +67,28 @@ class AlzheimerDatasetPreprocessor(object):
         #  6) Create targets from columns 'target' (except when set_type is SetType.test):
         #       - transform to numpy.ndarray with dtype=np.int64
         #  7) Return arrays of images, targets and paths as a dict
-        # images = []
-        return {}
+        annotation = self._annotation[
+            self._annotation['set'] == set_type.name.lower()
+        ]
+        if set_type is not SetType.TEST:
+            annotation = annotation.drop_duplicates()
+        images = []
+        for _, image_info in annotation.iterrows():
+            images.append(
+                cv2.imread(
+                    f'{self._data_config.PATH_TO_DATA}/{image_info["path"]}',
+                    cv2.IMREAD_GRAYSCALE,
+                ),
+            )
+        converted_images = np.array(images, dtype=np.float64)
+        if set_type is SetType.TRAIN:
+            self._preprocessing.train(converted_images)
+        converted_images = self._preprocessing.preprocess(converted_images)
+        return {
+            'features': converted_images,
+            'paths': annotation['path'].to_list(),
+            **(
+                {'targets': np.array(annotation['target'])}
+                if set_type is not SetType.TEST else {}
+            ),
+        }

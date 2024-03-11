@@ -42,6 +42,7 @@ repos:
         additional_dependencies:
           - types-requests
           - types-paramiko
+          - opencv-stubs
         exclude: tests
 
   - repo: https://github.com/best-doctor/pre-commit-hooks
