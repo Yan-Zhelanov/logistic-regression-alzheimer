@@ -37,10 +37,10 @@ class ImageDataPreprocessing(object):
         """Return preprocessed data."""
         flattened_features = self._flatten(features)
         if self._preprocess_type is PreprocessingType.NORMALIZATION:
-            return self._normalization(flattened_features)
-        return self._standardization(flattened_features)
+            return self._normalize(flattened_features)
+        return self._standardizate(flattened_features)
 
-    def _normalization(self, features: np.ndarray) -> np.ndarray:
+    def _normalize(self, features: np.ndarray) -> np.ndarray:
         """Transform features by scaling each pixel.
 
         Scaling occurs in a range [a, b] with the min and max params.
@@ -57,7 +57,7 @@ class ImageDataPreprocessing(object):
             features - self._min
         ) / (self._max - self._min)
 
-    def _standardization(self, features: np.ndarray) -> np.ndarray:
+    def _standardizate(self, features: np.ndarray) -> np.ndarray:
         """Standardize features with the mean and std params.
 
         Args:
