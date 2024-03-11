@@ -1,8 +1,8 @@
 import numpy as np
 
 
-def accuracy_score(targets: np.ndarray, predictions: np.ndarray) -> float:
-    """Accuracy score.
+def get_accuracy_score(targets: np.ndarray, predictions: np.ndarray) -> float:
+    """Get accuracy score.
 
     The formula is as follows:
         accuracy = (1 / N) Σ(i=0 to N-1) I(y_i == t_i),
@@ -12,16 +12,20 @@ def accuracy_score(targets: np.ndarray, predictions: np.ndarray) -> float:
             - y_i - predicted class of i-sample,
             - t_i - correct class of i-sample,
             - I(y_i == t_i) - indicator function.
+
     Args:
         targets: true labels
         predictions: predicted class
+
+    Returns:
+        float: Accuracy score.
     """
     # TODO: Implement computation of accuracy
     pass
 
 
-def precision_score(targets: np.ndarray, predictions: np.ndarray) -> float:
-    """Precision score.
+def get_precision_score(targets: np.ndarray, predictions: np.ndarray) -> float:
+    """Get precision score.
 
     The formula is as follows:
         precision = TP / (TP + FP),
@@ -29,16 +33,20 @@ def precision_score(targets: np.ndarray, predictions: np.ndarray) -> float:
         where:
             - TP is the number of true positives,
             - FP is the number of false positives.
+
     Args:
         targets: true labels
         predictions: predicted class
+
+    Returns:
+        float: Precision score.
     """
     # TODO: Implement computation of precision
     pass
 
 
-def recall_score(targets: np.ndarray, predictions: np.ndarray) -> float:
-    """Recall score.
+def get_recall_score(targets: np.ndarray, predictions: np.ndarray) -> float:
+    """Get recall score.
 
     The formula is as follows:
         recall = TP / (TP + FN),
@@ -46,16 +54,22 @@ def recall_score(targets: np.ndarray, predictions: np.ndarray) -> float:
         where:
             - TP is the number of true positives,
             - FN is the number of false negatives.
+
     Args:
         targets: true labels
         predictions: predicted class
+
+    Returns:
+        float: Recall score.
     """
     # TODO: Implement computation of recall
     pass
 
 
-def confusion_matrix(targets: np.ndarray, predictions: np.ndarray):
-    """Confusion matrix.
+def get_confusion_matrix(
+    targets: np.ndarray, predictions: np.ndarray,
+) -> np.ndarray:
+    """Get confusion matrix.
 
     Confusion matrix C with shape KxK:
         c[i, j] - number of observations known to be in class i and predicted to be in class j,
@@ -64,15 +78,20 @@ def confusion_matrix(targets: np.ndarray, predictions: np.ndarray):
             - K is the number of classes.
 
     Args:
-        targets: labels
-        predictions: predicted class
+        targets: Labels.
+        predictions: Predicted classes.
+
+    Returns:
+        np.ndarray: Confusion matrix.
     """
     # TODO: Implement computation of confusion matrix
     pass
 
 
-def precision_recall_curve(targets: np.ndarray, scores: np.ndarray):
-    """Precision-Recall curve computation for different threshold.
+def get_precision_recall_curve(
+    targets: np.ndarray, scores: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Get precision-recall curve computation for different threshold.
 
     Args:
         targets: true labels
@@ -96,17 +115,23 @@ def precision_recall_curve(targets: np.ndarray, scores: np.ndarray):
     pass
 
 
-def average_precision_score(targets: np.ndarray, scores: np.ndarray) -> float:
-    """Computes Average Precision metric.
+def get_average_precision_score(
+    targets: np.ndarray, scores: np.ndarray,
+) -> float:
+    """Compute Average Precision metric.
 
     Average precision is area under precision-recall curve:
         AP = Σ (R_n - R_{n-1}) * P_n,
 
         where:
             - P_n and R_n are the precision and recall at the n-th threshold
+
     Args:
-        targets: true labels
-        scores: target scores
+        targets: True labels.
+        scores: Target scores.
+
+    Returns:
+        float: Average precision score.
     """
     # TODO: Implement computation of average precision
     pass
