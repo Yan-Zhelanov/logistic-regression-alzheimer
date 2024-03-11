@@ -53,10 +53,9 @@ class ImageDataPreprocessing(object):
         """
         lower_bound = self._data_config.PREPROCESS_LOWER_BOUND
         upper_bound = self._data_config.PREPROCESS_UPPER_BOUND
-        # TODO: implement data normalization
-        #       normalized_x = a + (b - a) * (x - self.params['min']) / (self.params['max'] - self.params['min']),
-        #       where a = self.params['a'], b = self.params['b']
-        return features
+        return lower_bound + (upper_bound - lower_bound) * (
+            features - self._min
+        ) / (self._max - self._min)
 
     def _standardization(self, features: np.ndarray) -> np.ndarray:
         """Standardize features with the mean and std params.
