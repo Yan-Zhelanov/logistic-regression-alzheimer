@@ -16,7 +16,9 @@ class ImageDataPreprocessing:
 
         # Initialization of additional parameters
         if isinstance(preprocess_params, dict):
-            self.params.update({key: value for key, value in preprocess_params.items()})
+            self.params.update(
+                {key: value for key, value in preprocess_params.items()},
+            )
 
         # Select the preprocess function according to self.preprocess_type
         self.preprocess_func = getattr(self, self.preprocess_type.name)
@@ -73,9 +75,11 @@ class ImageDataPreprocessing:
         flattened_x = self.flatten(x)
         return self.preprocess_func(flattened_x, init=True)
 
-    def __call__(self, x: np.ndarray):
+    def preprocess(self, features: np.ndarray):
         """Returns preprocessed data."""
         if self.params is None:
-            raise Exception(f"{self.preprocess_type.name} instance is not trained yet. Please call 'train' first.")
-        flattened_x = self.flatten(x)
+            raise Exception(
+                f"{self.preprocess_type.name} instance is not trained yet. Please call 'train' first.",
+            )
+        flattened_x = self.flatten(features)
         return self.preprocess_func(flattened_x, init=False)
