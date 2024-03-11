@@ -66,9 +66,7 @@ class ImageDataPreprocessing(object):
         Returns:
             np.ndarray: Standardized features.
         """
-        # TODO: implement data standardization
-        #       standardized_x = (x - self.params['mean']) / self.params['std']
-        return features
+        return (features - self._mean) / self._std
 
     def _flatten(self, features: np.ndarray) -> np.ndarray:
         """Reshape features into a matrix of shape (N, HxW).
