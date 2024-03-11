@@ -1,27 +1,25 @@
 import random
 
 import numpy as np
-from easydict import EasyDict
 
 from utils.enums import WeightsInitType
 
-params_config = EasyDict()
 
-# Weights initialization
-params_config.weights_init_type = WeightsInitType.normal
-params_config.weights_init_kwargs = {'sigma': 0.01, 'mu': 0}
-params_config.bias_zeros_init = True
+class ParamsConfig(object):
+    # Weights
+    WEIGHTS_INIT_TYPE = WeightsInitType.NORMAL
+    WEIGHTS_INIT_KWARGS = {'sigma': 0.01, 'mu': 0}
+    BIAS_ZEROS_INIT = True
+    # Training params
+    SEED = 0
+    NUM_ITERATIONS = 1000
+    LEARNING_RATE = 0.0001
+    REG_COEFFICIENT = 0
+    INPUT_VECTOR_DIMENSION = 128 * 128
+    # Other
+    ACTIVATION_FUNC = 'softmax'
+    NUM_CLASSES = 1 if ACTIVATION_FUNC == 'sigmoid' else 2
 
-# Training params
-params_config.seed = 0
-params_config.num_iterations = 1000
-params_config.learning_rate = 1e-4
-params_config.reg_coefficient = 0
-params_config.input_vector_dimension = 128 * 128
 
-params_config.activation_func = 'softmax'
-params_config.num_classes = 1 if params_config.activation_func == 'sigmoid' else 2
-
-# Set seed for all params initialization
-np.random.seed(params_config.seed)
-random.seed(params_config.seed)
+np.random.seed(ParamsConfig.SEED)
+random.seed(ParamsConfig.SEED)
