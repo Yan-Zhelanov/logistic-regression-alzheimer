@@ -305,7 +305,10 @@ class LogisticRegression(object):
                 iteration, SetType.TRAIN, LoggingParamType.LOSS, loss_value,
             )
             self._params_logger.log_param(
-                iteration, SetType.TRAIN, LoggingParamType.METRIC, metrics,
+                iteration,
+                SetType.TRAIN,
+                LoggingParamType.METRIC,
+                metrics['accuracy'],
             )
             if features_valid is not None and targets_valid is not None:
                 self._predict_and_log_valid(
@@ -341,7 +344,7 @@ class LogisticRegression(object):
             iteration,
             SetType.VALIDATION,
             LoggingParamType.METRIC,
-            metrics_valid,
+            metrics_valid['accuracy'],
         )
         if loss_value_valid > self._best_loss:
             self._best_loss = loss_value_valid
@@ -416,12 +419,22 @@ class LogisticRegression(object):
         return np.mean(errors)
 
     def _get_metrics(
-        self, inputs: np.ndarray, targets: np.ndarray,
-        model_confidence: Union[np.ndarray, None] = None,
-    ):
+        self,
+        features: np.ndarray,
+        targets: np.ndarray,
+        model_confidence: np.ndarray | None = None,
+    ) -> dict[str, float]:
         """Metrics calculation."""
-        # TODO: Add calculation of metrics, e.g., accuracy, precision, recall, average precision, confusion matrix
-        raise NotImplementedError
+        if model_confidence is None:
+            model_confidence = self._get_model_confidence(features)
+        return {
+            'accuracy': get_accuracy_score(targets, model_confidence),
+            'average_precision': get_average_precision_score(
+                targets, model_confidence,
+            ),
+            'precision': get_precision_score(targets, model_confidence),
+            'recall': get_recall_score(targets, model_confidence),
+        }
 
     def _one_hot_encoding(self, targets):
         """Creates matrix of one-hot encoding vectors for input targets.
