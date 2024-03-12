@@ -190,7 +190,7 @@ class LogisticRegression(object):
             @ features.T + self._regularization_coefficient * self._weights
         )
 
-    def __get_gradient_bias(
+    def _get_gradient_for_bias(
         self, targets: np.ndarray, model_confidence: np.ndarray,
     ) -> np.ndarray:
         """Calculate the gradient of the cost function related to the bias.
@@ -201,7 +201,8 @@ class LogisticRegression(object):
 
             where:
                 - y (a KxN matrix) represents the model output after softmax,
-                - t (a NxK matrix) is the one-hot encoded vectors of target values,
+                - t (a NxK matrix) is the one-hot encoded vectors of target
+                    values,
                 - N is the number of data points.
         Args:
             targets: NxK matrix
@@ -210,8 +211,7 @@ class LogisticRegression(object):
         Returns:
              np.ndarray: Kx1 matrix
         """
-        # TODO: Implement this method using matrix operations in numpy. Do not use loops
-        raise NotImplementedError
+        return np.mean(model_confidence - targets, axis=0)
 
     def _update_weights(self, inputs: np.ndarray, targets: np.ndarray, model_confidence: np.ndarray):
         """Updates weights and bias.
