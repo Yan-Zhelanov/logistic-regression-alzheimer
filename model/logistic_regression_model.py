@@ -44,7 +44,7 @@ class LogisticRegression(object):
         if self._config.WEIGHTS_INIT_TYPE is WeightsInitType.NORMAL:
             self._init_weights_normal(**self._config.WEIGHTS_INIT_KWARGS)
         else:
-            self._weights_init_uniform(**self._config.WEIGHTS_INIT_KWARGS)
+            self._init_weights_uniform(**self._config.WEIGHTS_INIT_KWARGS)
         # Initialization of params logger
         self._params_logger = ParamsLogger(experiment_config)
         self._start_iteration = self.prepare_model(experiment_config)
@@ -65,16 +65,17 @@ class LogisticRegression(object):
             mean, scale, size=(self._num_classes, self._dimension),
         )
 
-    def _weights_init_uniform(self, *args, **kwargs):
-        """Filling the weight matrix with values using a Uniform distribution.
+    def _init_weights_uniform(self, low: float, high: float) -> np.ndarray:
+        """Init the weight matrix with values using a Uniform distribution.
 
         W ~ U(a, b),
 
         where:
             - a and b can be defined in self.cfg.weights_init_kwargs
         """
-        # TODO: Implement this method using np.random.uniform
-        raise NotImplementedError
+        return np.random.uniform(
+            low, high, size=(self._num_classes, self._dimension),
+        )
 
     def __get_model_output(self, inputs: np.ndarray) -> np.ndarray:
         """This function computes the model output by applying a linear transformation to the input data.
