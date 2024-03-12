@@ -105,17 +105,25 @@ def get_precision_recall_curve(
         recall (np.ndarray): recall values
         thresholds (np.ndarray): thresholds
     """
-    # TODO:
-    #  1) Get thresholds - unique values of scores by descending order
-    #  2) Add first precision and recall values as 0 and 0
-    #  3) For every th_n compute precision and recall:
-    #       - P_n = (Σ_i I(t_i == 1) * I(score_i >= th_n)) / (Σ_i I(score_i >= th_n))
-    #       - R_n = (Σ_i I(t_i == 1) * I(score_i >= th_n)) / (Σ_i I(t_i == 1))
-    #       - save P_n, R_n and th_n for every n
-    #  4) Add last precision and recall values as 0 and 1, respectively
-    #  5) For n from len(thresholds)-1 to 0:
-    #       - P_{n-1} = max(P_n, P_{n-1})
-    return np.array([])
+    thresholds = np.unique(scores)[::-1]
+    precisions = np.array([0])
+    recalls = np.array([0])
+    count_positives = np.sum(targets == 1)
+    for threshold in thresholds:
+        predicted_positives = scores >= threshold
+        count_true_positives = np.sum((scores >= threshold) & (targets == 1))
+        count_predicted_positives = np.sum(predicted_positives)
+        if count_predicted_positives:
+            precisions = np.append(
+                precisions, count_true_positives / count_predicted_positives,
+            )
+        else:
+            precisions = np.append(precisions, 0)
+        recalls = np.append(recalls, count_true_positives / count_positives)
+    np.append(precisions, 0)
+    np.append(recalls, 1)
+    precisions = np.flip(np.maximum.accumulate(np.flip(precisions)))
+    return precisions, recalls, thresholds
 
 
 def get_average_precision_score(
