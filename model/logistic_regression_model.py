@@ -98,8 +98,10 @@ class LogisticRegression(object):
         """
         return self._weights @ features.T + self._bias
 
-    def __softmax(self, model_output: np.ndarray) -> np.ndarray:
-        """Computes the softmax function on the model output.
+    def _get_softmax_probabilities(
+        self, predictions: np.ndarray,
+    ) -> np.ndarray:
+        """Compute the softmax function on the model output.
 
         The formula for softmax function is:
             y_j = e^(z_j) / Σ(i=0 to K-1) e^(z_i)
@@ -110,8 +112,8 @@ class LogisticRegression(object):
                 - K is the total number of classes,
                 - Σ denotes summation.
 
-        For numerical stability, subtract the max value of vector z_j before exponentiation:
-            z_j = z_j - max(z_j),
+        For numerical stability, subtract the max value of vector z_j before
+        exponentiation: z_j = z_j - max(z_j),
 
         Args:
             model_output (np.ndarray): The model output before softmax
@@ -119,8 +121,10 @@ class LogisticRegression(object):
         Returns:
             np.ndarray: KxN matrix - the softmax probabilities
         """
-        # TODO: Implement numerically stable softmax
-        raise NotImplementedError
+        predictions = predictions - np.max(predictions, axis=1, keepdims=True)
+        exp_predictions = np.exp(predictions)
+        sum_exp_predictions = np.sum(exp_predictions, axis=1, keepdims=True)
+        return exp_predictions / sum_exp_predictions
 
     def _get_model_confidence(self, inputs: np.ndarray) -> np.ndarray:
         """Calculates model confidence.
@@ -143,7 +147,7 @@ class LogisticRegression(object):
             np.ndarray:  KxN matrix - the model output after softmax.
         """
         z = self._get_model_output(inputs)
-        y = self.__softmax(z)
+        y = self._get_softmax_probabilities(z)
         return y
 
     def __get_gradient_w(self, inputs: np.ndarray, targets: np.ndarray, model_confidence: np.ndarray) -> np.ndarray:
