@@ -36,14 +36,18 @@ class LogisticRegression(object):
             self._config.REGULARIZATION_COEFFICIENT
         )
         # Initialization of weights and bias
-        self._weights = None  # numpy.ndarray of shape (K, D)
+        # numpy.ndarray of shape (K, D)
+        if self._config.WEIGHTS_INIT_TYPE is WeightsInitType.NORMAL:
+            self._weights = self._get_weights_normal(
+                **self._config.WEIGHTS_INIT_KWARGS,
+            )
+        else:
+            self._weights = self._get_weights_uniform(
+                **self._config.WEIGHTS_INIT_KWARGS,
+            )
         # Initialize bias with zeros if self.cfg.bias_zeros_init is True
         # numpy.ndarray of shape (K, 1)
         self._bias = np.zeros((self._num_classes, 1))
-        if self._config.WEIGHTS_INIT_TYPE is WeightsInitType.NORMAL:
-            self._init_weights_normal(**self._config.WEIGHTS_INIT_KWARGS)
-        else:
-            self._init_weights_uniform(**self._config.WEIGHTS_INIT_KWARGS)
         # Initialization of params logger
         self._params_logger = ParamsLogger(experiment_config)
         self._start_iteration = self.prepare_model(experiment_config)
@@ -52,7 +56,7 @@ class LogisticRegression(object):
         self._best_loss: int | float = 0
         self._iterations_without_improvement = 0
 
-    def _init_weights_normal(
+    def _get_weights_normal(
         self, mean: float = 0, scale: float = 0.01,
     ) -> np.ndarray:
         """Init the weight matrix with values using a Normal distribution.
@@ -66,7 +70,7 @@ class LogisticRegression(object):
             mean, scale, size=(self._num_classes, self._dimension),
         )
 
-    def _init_weights_uniform(self, low: float, high: float) -> np.ndarray:
+    def _get_weights_uniform(self, low: float, high: float) -> np.ndarray:
         """Init the weight matrix with values using a Uniform distribution.
 
         W ~ U(a, b),
@@ -180,7 +184,7 @@ class LogisticRegression(object):
         Returns:
             np.ndarray: KxD matrix
         """
-        if self._regularization_coefficient == 0 or self._weights is None:
+        if self._regularization_coefficient == 0:
             return (
                 (1 / features.shape[0])
                 * (model_confidence - targets) @ features
@@ -213,22 +217,39 @@ class LogisticRegression(object):
         """
         return np.mean(model_confidence - targets, axis=0)
 
-    def _update_weights(self, inputs: np.ndarray, targets: np.ndarray, model_confidence: np.ndarray):
-        """Updates weights and bias.
+    def _update_weights(
+        self,
+        features: np.ndarray,
+        targets: np.ndarray,
+        model_confidence: np.ndarray,
+    ) -> None:
+        """Update weights and bias.
 
-        At each iteration of gradient descent, the weights and bias are updated using the formula:
-
+        At each iteration of gradient descent, the weights and bias are updated
+        using the formula:
             w_{k+1} = w_k - γ * ∇w E(w_k)
             b_{k+1} = b_k - γ * ∇b E(b_k)
 
             where:
                 - w_k, b_k are the current weight and bias at iteration k,
-                - γ is the learning rate, determining the step size in the direction of the negative gradient,
-                - ∇w E(w_k) is the gradient of the cost function E with respect to the weights w at iteration k,
-                - ∇b E(b_k) is the gradient of the cost function E with respect to the bias w at iteration k,
+                - γ is the learning rate, determining the step size in the
+                    direction of the negative gradient,
+                - ∇w E(w_k) is the gradient of the cost function E with respect
+                    to the weights w at iteration k,
+                - ∇b E(b_k) is the gradient of the cost function E with respect
+                    to the bias w at iteration k
+
+        Args:
+            features: NxD matrix
+            targets: NxK matrix
+            model_confidence: KxN matrix
         """
-        # TODO: Implement this method using self.__get_gradient_b and self.__get_gradient_w
-        raise NotImplementedError
+        self._weights -= self._learning_rate * self._get_gradient_for_weights(
+            features, targets, model_confidence,
+        )
+        self._bias -= self._learning_rate * self._get_gradient_for_bias(
+            targets, model_confidence,
+        )
 
     def _train_model(
         self, features: np.ndarray, targets: np.ndarray,
