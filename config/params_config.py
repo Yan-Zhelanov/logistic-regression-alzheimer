@@ -14,7 +14,7 @@ class ParamsConfig(object):
     SEED = 0
     NUM_ITERATIONS = 1000
     LEARNING_RATE = 0.0001
-    REG_COEFFICIENT = 0
+    REGULARIZATION_COEFFICIENT = 0
     INPUT_VECTOR_DIMENSION = 128 * 128
     # Other
     ACTIVATION_FUNC = 'softmax'
