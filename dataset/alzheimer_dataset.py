@@ -24,7 +24,7 @@ class AlzheimerDatasetPreprocessor(object):
             ),
         )
         self._preprocessing = ImageDataPreprocessing(
-            data_config.PREPROCESS_TYPE, data_config.PREPROCESS_PARAMS,
+            data_config.PREPROCESS_TYPE, data_config,
         )
         self._data = {}
         for set_type in (SetType.TRAIN, SetType.VALIDATION, SetType.TEST):
@@ -49,24 +49,6 @@ class AlzheimerDatasetPreprocessor(object):
                 'paths': list of paths,
             }
         """
-        # TODO:
-        #  1) Get the rows from the self.annotation-dataframe with 'set_type' == set_type.name
-        #  2) Drop duplicates from dataframe if necessary (except when set_type is SetType.test)
-        #  3) For each row of the dataframe:
-        #       - read the image by 'path' column
-        #       - convert it to GRAYSCALE mode
-        #       - transform it to numpy.ndarray with dtype=np.float64
-        #       - add the read image to the list of images
-        #       You can use, for example, Pillow, opencv or scikit-image libraries to work with images
-        #  4) Stack images-list to numpy.ndarray with shape (N, H, W), where
-        #       - N - number of samples
-        #       - H, W - images height and width
-        #  5) Apply self.preprocessing to images according SetType:
-        #          if set_type is SetType.train, call self.preprocessing.train(),
-        #          otherwise call self.preprocessing()
-        #  6) Create targets from columns 'target' (except when set_type is SetType.test):
-        #       - transform to numpy.ndarray with dtype=np.int64
-        #  7) Return arrays of images, targets and paths as a dict
         annotation = self._annotation[
             self._annotation['set'] == set_type.name.lower()
         ]
@@ -82,7 +64,7 @@ class AlzheimerDatasetPreprocessor(object):
             )
         converted_images = np.array(images, dtype=np.float64)
         if set_type is SetType.TRAIN:
-            self._preprocessing.train(converted_images)
+            self._preprocessing.fit(converted_images)
         converted_images = self._preprocessing.preprocess(converted_images)
         return {
             'features': converted_images,
