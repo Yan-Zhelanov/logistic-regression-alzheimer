@@ -77,25 +77,25 @@ class LogisticRegression(object):
             low, high, size=(self._num_classes, self._dimension),
         )
 
-    def __get_model_output(self, inputs: np.ndarray) -> np.ndarray:
-        """This function computes the model output by applying a linear transformation to the input data.
+    def _get_model_output(self, features: np.ndarray) -> np.ndarray:
+        """Compute the model output by applying a linear transformation.
 
         The linear transformation is defined by the equation:
             z = W * x^T + b
 
             where:
                 - W (a KxD matrix) represents the weight matrix,
-                - x (a NxD matrix, also known as 'inputs') represents the input data,
+                - x (a NxD matrix, also known as 'inputs') represents the
+                    input data,
                 - b (a vector of length K) represents the bias vector,
                 - z represents the model output before activation.
         Args:
-            inputs: NxD matrix
+            features: NxD matrix.
 
         Returns:
-            np.ndarray: KxN matrix - the model output before softmax
+            np.ndarray: KxN matrix - the model output before softmax.
         """
-        # TODO: Implement this function using numpy matrix operations
-        raise NotImplementedError
+        return self._weights @ features.T + self._bias
 
     def __softmax(self, model_output: np.ndarray) -> np.ndarray:
         """Computes the softmax function on the model output.
@@ -141,7 +141,7 @@ class LogisticRegression(object):
         Returns:
             np.ndarray:  KxN matrix - the model output after softmax.
         """
-        z = self.__get_model_output(inputs)
+        z = self._get_model_output(inputs)
         y = self.__softmax(z)
         return y
 
