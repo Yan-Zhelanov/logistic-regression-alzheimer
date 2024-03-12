@@ -139,7 +139,8 @@ class LogisticRegression(object):
 
             where:
                 - W (a KxD matrix) represents the weight matrix,
-                - x (a NxD matrix, also known as 'inputs') represents the input data,
+                - x (a NxD matrix, also known as 'inputs') represents the input
+                    data,
                 - b (a vector of length K) represents the bias vector,
                 - z represents the model output before activation,
                 - y represents the model output after softmax.
@@ -346,7 +347,7 @@ class LogisticRegression(object):
         )
         if loss_value_valid > self._best_loss:
             self._best_loss = loss_value_valid
-            self._save(iteration)
+            self._save(f'best_loss_{iteration}.pickle')
 
     def _is_stop_needed(self) -> bool:
         if self._config.ITERATIONS_WITHOUT_IMPROVEMENT > 0:
@@ -464,38 +465,50 @@ class LogisticRegression(object):
         one_hot_encoded_targets[np.arange(targets.shape[0]), targets] = 1
         return one_hot_encoded_targets
 
-    def __call__(self, inputs: np.ndarray):
-        """Returns model prediction."""
-        model_confidence = self._get_model_confidence(inputs)
-        predictions = np.argmax(model_confidence, axis=0)
-        return predictions
+    def __call__(self, features: np.ndarray) -> np.ndarray:
+        """Return model prediction."""
+        model_confidence = self._get_model_confidence(features)
+        return np.argmax(model_confidence, axis=0)
 
-    def _save(self, filepath):
-        """Saves trained model."""
-        with open(os.path.join(self._checkpoints_dir, filepath), 'wb') as f:
-            pickle.dump((self._weights, self._bias), f)
+    def _save(self, filepath: str) -> None:
+        """Save trained model."""
+        with open(os.path.join(self._checkpoints_dir, filepath), 'wb') as file:
+            pickle.dump((self._weights, self._bias), file)
 
-    def load(self, filepath):
-        """Loads trained model."""
-        with open(filepath, 'rb') as f:
-            self._weights, self._bias = pickle.load(f)
+    def load(self, filepath: str) -> None:
+        """Load trained model."""
+        with open(filepath, 'rb') as file:
+            self._weights, self._bias = pickle.load(file)
 
-    def prepare_model(self, experiment_config):
-        """Prepares model: checkpoint loading (if needed) and start iteration set up."""
+    def prepare_model(self, experiment_config: ExperimentConfig) -> int:
+        """Prepare model.
+
+        Checkpoint loading (if needed) and start iteration set up.
+
+        Args:
+            experiment_config: Experiment configuration.
+
+        Returns:
+            int: The start iteration.
+        """
         start_iteration = 0
-        if experiment_config.load_model:
+        if experiment_config.LOAD_MODEL:
             try:
-                self.load(experiment_config.load_model_path)
+                self.load(experiment_config.LOAD_MODEL_PATH)
                 print(
-                    f'Model loaded successfully from {experiment_config.load_model_path}',
+                    'Model loaded successfully from'
+                    + f' {experiment_config.LOAD_MODEL_PATH}',
                 )
-                start_iteration = experiment_config.load_model_epoch + 1
+                start_iteration = experiment_config.LOAD_MODEL_EPOCH + 1
             except FileNotFoundError:
                 print(
-                    f'Model file not found at {experiment_config.load_model_path}. Using init weights.',
+                    'Model file not found at'
+                    + f' {experiment_config.LOAD_MODEL_PATH}.'
+                    + ' Using init weights.',
                 )
-            except Exception as e:
+            except Exception as error:
                 print(
-                    f'An error occurred while loading the model: {str(e)}. Using init weight.',
+                    f'An error occurred while loading the model: {str(error)}.'
+                    + ' Using init weight.',
                 )
         return start_iteration
