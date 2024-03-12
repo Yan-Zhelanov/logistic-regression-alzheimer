@@ -127,7 +127,7 @@ class LogisticRegression(object):
         return exp_predictions / sum_exp_predictions
 
     def _get_model_confidence(self, features: np.ndarray) -> np.ndarray:
-        """Calculates model confidence.
+        """Calculate model confidence.
 
         Model confidence is represented as:
 
@@ -149,16 +149,24 @@ class LogisticRegression(object):
         predictions = self._get_model_output(features)
         return self._get_softmax_probabilities(predictions)
 
-    def __get_gradient_w(self, inputs: np.ndarray, targets: np.ndarray, model_confidence: np.ndarray) -> np.ndarray:
-        """Calculates the gradient of the cost function with respect to the weights.
+    def _get_gradient_for_weights(
+        self,
+        features: np.ndarray,
+        targets: np.ndarray,
+        model_confidence: np.ndarray,
+    ) -> np.ndarray:
+        """Calculate the gradient of the cost function related to the weights.
 
-        The gradient of the error with respect to the weights (∇w E) can be computed using the formula:
+        The gradient of the error with respect to the weights (∇w E) can be
+            computed using the formula:
             ∇w E = (1 / N) * (y - t) * x,
 
             where:
                 - y (a KxN matrix) represents the model output after softmax,
-                - t (a NxK matrix) is the one-hot encoded vectors of target values,
-                - x (a NxD matrix, also known as 'inputs') represents the input data,
+                - t (a NxK matrix) is the one-hot encoded vectors of target
+                    values,
+                - x (a NxD matrix, also known as 'inputs') represents the
+                    input data,
                 - N is the number of data points.
 
         For L2-regularisation:
@@ -170,17 +178,25 @@ class LogisticRegression(object):
             model_confidence: KxN matrix
 
         Returns:
-             np.ndarray: KxD matrix
+            np.ndarray: KxD matrix
         """
-        # TODO: Implement this method using matrix operations in numpy. Do not use loops
-        # TODO: Add regularization
-        raise NotImplementedError
+        if self._regularization_coefficient == 0 or self._weights is None:
+            return (
+                (1 / features.shape[0])
+                * (model_confidence - targets) @ features
+            )
+        return (
+            (1 / features.shape[0]) * (model_confidence - targets)
+            @ features.T + self._regularization_coefficient * self._weights
+        )
 
-    def __get_gradient_b(self, targets: np.ndarray, model_confidence: np.ndarray) -> np.ndarray:
-        """Calculates the gradient of the cost function with respect to the bias.
+    def __get_gradient_bias(
+        self, targets: np.ndarray, model_confidence: np.ndarray,
+    ) -> np.ndarray:
+        """Calculate the gradient of the cost function related to the bias.
 
-        The gradient of the error with respect to the bias (∇b E) can be computed using the formula:
-
+        The gradient of the error with respect to the bias (∇b E) can be
+            computed using the formula:
             ∇b E = (1 / N) * Σ(i=0 to N-1) (y_i - t_i)
 
             where:
