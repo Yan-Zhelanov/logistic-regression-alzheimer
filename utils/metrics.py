@@ -108,18 +108,16 @@ def get_precision_recall_curve(
     thresholds = np.unique(scores)[::-1]
     precisions = np.array([0])
     recalls = np.array([0])
-    count_positives = np.sum(targets == 1)
     for threshold in thresholds:
-        predicted_positives = scores >= threshold
-        count_true_positives = np.sum((scores >= threshold) & (targets == 1))
-        count_predicted_positives = np.sum(predicted_positives)
+        predictions = scores >= threshold
+        count_predicted_positives = np.sum(predictions)
         if count_predicted_positives:
             precisions = np.append(
-                precisions, count_true_positives / count_predicted_positives,
+                precisions, get_precision_score(targets, predictions),
             )
         else:
             precisions = np.append(precisions, 0)
-        recalls = np.append(recalls, count_true_positives / count_positives)
+        recalls = np.append(recalls, get_recall_score(targets, predictions))
     np.append(precisions, 0)
     np.append(recalls, 1)
     precisions = np.flip(np.maximum.accumulate(np.flip(precisions)))
