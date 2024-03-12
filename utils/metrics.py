@@ -142,5 +142,6 @@ def get_average_precision_score(
     Returns:
         float: Average precision score.
     """
-    # TODO: Implement computation of average precision
-    return 1.0
+    precisions, recalls, _ = get_precision_recall_curve(targets, scores)
+    recall_deltas = np.diff(recalls)
+    return np.sum(recall_deltas * precisions[1:])
