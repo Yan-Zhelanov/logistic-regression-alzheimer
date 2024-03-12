@@ -173,7 +173,7 @@ class LogisticRegression(object):
             ∇w E = (1 / N) * (y - t) * x^T + λ * w
 
         Args:
-            inputs: NxD matrix
+            features: NxD matrix
             targets: NxK matrix
             model_confidence: KxN matrix
 
