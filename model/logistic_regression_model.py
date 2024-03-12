@@ -373,25 +373,33 @@ class LogisticRegression(object):
             where:
                 - N is the size of the data set,
                 - K is the number of classes,
-                - t_{ik} is the value from OHE target matrix for data point i and class k,
-                - y_k (x_i) is model output after softmax for data point i and class k.
+                - t_{ik} is the value from OHE target matrix for data point i
+                    and class k,
+                - y_k (x_i) is model output after softmax for data point i and
+                    class k.
 
         Numerically stable formula:
-            E = (1 / N) Σ(i=0 to N-1) Σ(k=0 to K-1) t_ik * (ln(Σ(l=0 to K-1) e^((z_il - c_i)) - (z_ik - c_i)),
+            E = (1 / N)
+                Σ(i=0 to N-1) Σ(k=0 to K-1)
+                t_ik * (ln(Σ(l=0 to K-1) e^((z_il - c_i)) - (z_ik - c_i)),
 
             where:
                 - N is the size of the data set,
                 - K is the number of classes,
-                - t_{ik} is the value from OHE target matrix for data point i and class k,
-                - z_{il} is the model output before softmax for data point i and class l,
+                - t_{ik} is the value from OHE target matrix for data point i
+                    and class k,
+                - z_{il} is the model output before softmax for data point i
+                    and class l,
                 - z is the model output before softmax (matrix z),
                 - c_i is maximum value for each data point i in vector z_i.
 
         Parameters:
             targets (np.ndarray): The target data.
             inputs (Union[np.ndarray, None]: The input data.
-            z (Union[np.ndarray, None]): The model output before softmax. If None, it will be computed.
-            model_confidence (Union[np.ndarray, None]): The model output after softmax. If None, it will be computed.
+            predictions_without_softmax (Union[np.ndarray, None]): The model
+                output before softmax. If None, it will be computed.
+            model_confidence (Union[np.ndarray, None]): The model output after
+                softmax. If None, it will be computed.
 
         Returns:
             float: The value of the target function.
