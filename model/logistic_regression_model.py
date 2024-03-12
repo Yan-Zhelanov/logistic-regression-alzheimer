@@ -292,8 +292,7 @@ class LogisticRegression(object):
             features_valid: MxD matrix
             targets_valid: MxK matrix
         """
-        targets_train_ohe = self._one_hot_encoding(targets_train)
-        targets_valid_ohe = self._one_hot_encoding(targets_valid)
+        targets_train_ohe = self._convert_using_ohe(targets_train)
         for iteration in range(self._config.NUM_ITERATIONS):
             loss_value, confidence = self._train_model(
                 features_train, targets_train_ohe,
@@ -315,7 +314,6 @@ class LogisticRegression(object):
                     iteration,
                     features_valid,
                     targets_valid,
-                    targets_valid_ohe,
                 )
             if self._is_stop_needed():
                 break
@@ -325,8 +323,8 @@ class LogisticRegression(object):
         iteration: int,
         features_valid: np.ndarray,
         targets_valid: np.ndarray,
-        targets_valid_ohe: np.ndarray,
     ) -> None:
+        targets_valid_ohe = self._convert_using_ohe(targets_valid)
         loss_value_valid = self._get_loss_value(
             targets_valid_ohe, features_valid,
         )
@@ -444,8 +442,8 @@ class LogisticRegression(object):
             'recall': get_recall_score(targets, model_confidence),
         }
 
-    def _one_hot_encoding(self, targets):
-        """Creates matrix of one-hot encoding vectors for input targets.
+    def _convert_using_ohe(self, targets: np.ndarray) -> np.ndarray:
+        """Create matrix of one-hot encoding vectors for input targets.
 
         One-hot encoding vector representation:
             t_i^(k) = 1 if k = t_i otherwise  0,
@@ -453,9 +451,18 @@ class LogisticRegression(object):
             where:
                 - k in [0, self.k-1],
                 - t_i - target class of i-sample.
+
+        Args:
+            targets: NxK matrix
+
+        Returns:
+            np.ndarray: NxK matrix
         """
-        # TODO: Implement this function, it is possible to do it without loop using numpy
-        raise NotImplementedError
+        one_hot_encoded_targets = np.zeros(
+            (targets.shape[0], self._num_classes),
+        )
+        one_hot_encoded_targets[np.arange(targets.shape[0]), targets] = 1
+        return one_hot_encoded_targets
 
     def __call__(self, inputs: np.ndarray):
         """Returns model prediction."""
