@@ -1,6 +1,6 @@
 import os
 import pickle
-from typing import Union
+from typing import Union, cast
 
 import numpy as np
 
@@ -393,8 +393,27 @@ class LogisticRegression(object):
         Returns:
             float: The value of the target function.
         """
-        # TODO: Implement this function, it is possible to do it without loop using numpy
-        raise NotImplementedError
+        if model_confidence is None and features is None:
+            raise ValueError(
+                'Model confidence and features cannot be None at the same time'
+                + ' when calculating the loss.',
+            )
+        if model_confidence is None:
+            model_confidence = self._get_model_confidence(
+                cast(np.ndarray, features),
+            )
+        if prediction_without_softmax is None:
+            prediction_without_softmax = self._get_model_output(
+                cast(np.ndarray, features),
+            )
+        max_prediction = np.max(
+            prediction_without_softmax, axis=1, keepdims=True,
+        )
+        exp_predictions = np.exp(prediction_without_softmax - max_prediction)
+        sum_exp_predictions = np.sum(exp_predictions, axis=1, keepdims=True)
+        log_exp_predictions = np.log(sum_exp_predictions)
+        errors = targets * (log_exp_predictions - prediction_without_softmax)
+        return np.mean(errors)
 
     def _get_metrics(
         self, inputs: np.ndarray, targets: np.ndarray,
