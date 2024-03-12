@@ -126,7 +126,7 @@ class LogisticRegression(object):
         sum_exp_predictions = np.sum(exp_predictions, axis=1, keepdims=True)
         return exp_predictions / sum_exp_predictions
 
-    def _get_model_confidence(self, inputs: np.ndarray) -> np.ndarray:
+    def _get_model_confidence(self, features: np.ndarray) -> np.ndarray:
         """Calculates model confidence.
 
         Model confidence is represented as:
@@ -141,14 +141,13 @@ class LogisticRegression(object):
                 - y represents the model output after softmax.
 
         Args:
-            inputs: NxD matrix
+            features: NxD matrix
 
         Returns:
             np.ndarray:  KxN matrix - the model output after softmax.
         """
-        z = self._get_model_output(inputs)
-        y = self._get_softmax_probabilities(z)
-        return y
+        predictions = self._get_model_output(features)
+        return self._get_softmax_probabilities(predictions)
 
     def __get_gradient_w(self, inputs: np.ndarray, targets: np.ndarray, model_confidence: np.ndarray) -> np.ndarray:
         """Calculates the gradient of the cost function with respect to the weights.
