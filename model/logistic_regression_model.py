@@ -265,8 +265,6 @@ class LogisticRegression(object):
             float: the value of the target function
             np.ndarray: the model output after softmax
         """
-        # TODO: Implement this method using self.get_model_confidence,
-        #       self.__target_function_value and self.__weights_update
         confidence = self._get_model_confidence(features)
         loss_value = self._get_loss_value(
             targets, features,
