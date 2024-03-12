@@ -4,40 +4,54 @@ from typing import Union
 
 import numpy as np
 
-from utils.enums import SetType, LoggingParamType
-from utils.metrics import precision_score, recall_score, average_precision_score, accuracy_score
+from config.experiment_config import ExperimentConfig
+from config.params_config import ParamsConfig
+from utils.enums import LoggingParamType, SetType, WeightsInitType
+from utils.metrics import (
+    get_accuracy_score,
+    get_average_precision_score,
+    get_precision_score,
+    get_recall_score,
+)
 from utils.params_logger import ParamsLogger
 
 
-class LogisticRegression:
-    """A class for implementing and training a logistic regression model using the numpy library"""
+class LogisticRegression(object):
+    """A class for implementing and training a logistic regression model."""
 
-    def __init__(self, cfg, experiment_config, **kwargs):
-        """
+    def __init__(
+        self, config: ParamsConfig, experiment_config: ExperimentConfig,
+    ) -> None:
+        """Initialize the model.
+
         Args:
-            cfg: model and training configuration
-            experiment_config: experiment configuration
+            config: Model and training configuration.
+            experiment_config: Experiment configuration.
         """
-        self.cfg = cfg
+        self._config = config
 
-        self.k = self.cfg.num_classes
-        self.d = self.cfg.input_vector_dimension
-        self.learning_rate = self.cfg.learning_rate
-        self.reg_coefficient = self.cfg.reg_coefficient
-
+        self._num_classes = self._config.NUM_CLASSES
+        self._dimension = self._config.INPUT_VECTOR_DIMENSION
+        self._learning_rate = self._config.LEARNING_RATE
+        self._regularization_coefficient = (
+            self._config.REGULARIZATION_COEFFICIENT
+        )
         # Initialization of weights and bias
-        self.weights = None  # numpy.ndarray of shape (K, D)
+        self._weights = None  # numpy.ndarray of shape (K, D)
         # Initialize bias with zeros if self.cfg.bias_zeros_init is True
-        self.bias = np.zeros((self.k, 1))  # numpy.ndarray of shape (K, 1)
-        getattr(self, f'weights_init_{self.cfg.weights_init_type.name}')(**self.cfg.weights_init_kwargs)
-
+        # numpy.ndarray of shape (K, 1)
+        self._bias = np.zeros((self._num_classes, 1))
+        if self._config.WEIGHTS_INIT_TYPE is WeightsInitType.NORMAL:
+            self._weights_init_normal(**self._config.WEIGHTS_INIT_KWARGS)
+        else:
+            self._weights_init_uniform(**self._config.WEIGHTS_INIT_KWARGS)
         # Initialization of params logger
-        self.params_logger = ParamsLogger(experiment_config)
-        self.start_iteration = self.prepare_model(experiment_config)
-        self.checkpoints_dir = experiment_config.checkpoints_dir
-        self.save_iter = experiment_config.save_model_iter
+        self._params_logger = ParamsLogger(experiment_config)
+        self._start_iteration = self.prepare_model(experiment_config)
+        self._checkpoints_dir = experiment_config.CHECKPOINTS_DIR
+        self._save_iter = experiment_config.SAVE_MODEL_ITER
 
-    def weights_init_normal(self, *args, **kwargs):
+    def _weights_init_normal(self, *args, **kwargs):
         """Filling the weight matrix with values using a Normal distribution.
 
         W ~ N(mu, sigma^2),
@@ -48,7 +62,7 @@ class LogisticRegression:
         # TODO: Implement this method using np.random.normal
         raise NotImplementedError
 
-    def weights_init_uniform(self, *args, **kwargs):
+    def _weights_init_uniform(self, *args, **kwargs):
         """Filling the weight matrix with values using a Uniform distribution.
 
         W ~ U(a, b),
@@ -208,8 +222,10 @@ class LogisticRegression:
         #       self.__target_function_value and self.__weights_update
         raise NotImplementedError
 
-    def train(self, inputs_train: np.ndarray, targets_train: np.ndarray,
-              inputs_valid: Union[np.ndarray, None] = None, targets_valid: Union[np.ndarray, None] = None):
+    def train(
+        self, inputs_train: np.ndarray, targets_train: np.ndarray,
+        inputs_valid: Union[np.ndarray, None] = None, targets_valid: Union[np.ndarray, None] = None,
+    ):
         """Training with gradient descent.
 
         This iterative process aims to find the weights that minimize the cost function E(w).
@@ -226,11 +242,13 @@ class LogisticRegression:
         #       - if there is no improvement after a given number of iterations, training can be stopped
         raise NotImplementedError
 
-    def __target_function_value(self,
-                                targets: np.ndarray,
-                                inputs: Union[np.ndarray, None] = None,
-                                z: Union[np.ndarray, None] = None,
-                                model_confidence: Union[np.ndarray, None] = None) -> float:
+    def __target_function_value(
+        self,
+        targets: np.ndarray,
+        inputs: Union[np.ndarray, None] = None,
+        z: Union[np.ndarray, None] = None,
+        model_confidence: Union[np.ndarray, None] = None,
+    ) -> float:
         """Target function.
 
         Cross-Entropy Loss:
@@ -265,8 +283,10 @@ class LogisticRegression:
         # TODO: Implement this function, it is possible to do it without loop using numpy
         raise NotImplementedError
 
-    def compute_metrics(self, inputs: np.ndarray, targets: np.ndarray,
-                        model_confidence: Union[np.ndarray, None] = None):
+    def compute_metrics(
+        self, inputs: np.ndarray, targets: np.ndarray,
+        model_confidence: Union[np.ndarray, None] = None,
+    ):
         """Metrics calculation."""
         # TODO: Add calculation of metrics, e.g., accuracy, precision, recall, average precision, confusion matrix
         raise NotImplementedError
@@ -292,13 +312,13 @@ class LogisticRegression:
 
     def save(self, filepath):
         """Saves trained model."""
-        with open(os.path.join(self.checkpoints_dir, filepath), 'wb') as f:
-            pickle.dump((self.weights, self.bias), f)
+        with open(os.path.join(self._checkpoints_dir, filepath), 'wb') as f:
+            pickle.dump((self._weights, self._bias), f)
 
     def load(self, filepath):
         """Loads trained model."""
         with open(filepath, 'rb') as f:
-            self.weights, self.bias = pickle.load(f)
+            self._weights, self._bias = pickle.load(f)
 
     def prepare_model(self, experiment_config):
         """Prepares model: checkpoint loading (if needed) and start iteration set up."""
@@ -306,10 +326,16 @@ class LogisticRegression:
         if experiment_config.load_model:
             try:
                 self.load(experiment_config.load_model_path)
-                print(f"Model loaded successfully from {experiment_config.load_model_path}")
+                print(
+                    f'Model loaded successfully from {experiment_config.load_model_path}',
+                )
                 start_iteration = experiment_config.load_model_epoch + 1
             except FileNotFoundError:
-                print(f"Model file not found at {experiment_config.load_model_path}. Using init weights.")
+                print(
+                    f'Model file not found at {experiment_config.load_model_path}. Using init weights.',
+                )
             except Exception as e:
-                print(f"An error occurred while loading the model: {str(e)}. Using init weight.")
+                print(
+                    f'An error occurred while loading the model: {str(e)}. Using init weight.',
+                )
         return start_iteration
