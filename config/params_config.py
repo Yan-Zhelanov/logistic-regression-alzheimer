@@ -8,7 +8,7 @@ from utils.enums import WeightsInitType
 class ParamsConfig(object):
     # Weights
     WEIGHTS_INIT_TYPE = WeightsInitType.NORMAL
-    WEIGHTS_INIT_KWARGS = {'sigma': 0.01, 'mu': 0}
+    WEIGHTS_INIT_KWARGS = {'scale': 0.01, 'mean': 0}
     BIAS_ZEROS_INIT = True
     # Training params
     SEED = 0
