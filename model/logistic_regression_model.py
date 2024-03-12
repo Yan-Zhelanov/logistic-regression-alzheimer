@@ -29,7 +29,6 @@ class LogisticRegression(object):
             experiment_config: Experiment configuration.
         """
         self._config = config
-
         self._num_classes = self._config.NUM_CLASSES
         self._dimension = self._config.INPUT_VECTOR_DIMENSION
         self._learning_rate = self._config.LEARNING_RATE
@@ -50,6 +49,8 @@ class LogisticRegression(object):
         self._start_iteration = self.prepare_model(experiment_config)
         self._checkpoints_dir = experiment_config.CHECKPOINTS_DIR
         self._save_iter = experiment_config.SAVE_MODEL_ITER
+        self._best_loss: int | float = 0
+        self._iterations_without_improvement = 0
 
     def _init_weights_normal(
         self, mean: float = 0, scale: float = 0.01,
@@ -121,7 +122,7 @@ class LogisticRegression(object):
         # TODO: Implement numerically stable softmax
         raise NotImplementedError
 
-    def get_model_confidence(self, inputs: np.ndarray) -> np.ndarray:
+    def _get_model_confidence(self, inputs: np.ndarray) -> np.ndarray:
         """Calculates model confidence.
 
         Model confidence is represented as:
@@ -193,7 +194,7 @@ class LogisticRegression(object):
         # TODO: Implement this method using matrix operations in numpy. Do not use loops
         raise NotImplementedError
 
-    def __weights_update(self, inputs: np.ndarray, targets: np.ndarray, model_confidence: np.ndarray):
+    def _update_weights(self, inputs: np.ndarray, targets: np.ndarray, model_confidence: np.ndarray):
         """Updates weights and bias.
 
         At each iteration of gradient descent, the weights and bias are updated using the formula:
@@ -210,7 +211,9 @@ class LogisticRegression(object):
         # TODO: Implement this method using self.__get_gradient_b and self.__get_gradient_w
         raise NotImplementedError
 
-    def __gradient_descent_step(self, inputs: np.ndarray, targets: np.ndarray):
+    def _train_model(
+        self, features: np.ndarray, targets: np.ndarray,
+    ) -> tuple[float, np.ndarray]:
         """Gradient descent step.
 
         One step of gradient descent includes:
@@ -224,33 +227,101 @@ class LogisticRegression(object):
         """
         # TODO: Implement this method using self.get_model_confidence,
         #       self.__target_function_value and self.__weights_update
-        raise NotImplementedError
+        confidence = self._get_model_confidence(features)
+        loss_value = self._get_loss_value(
+            targets, features,
+        )
+        self._update_weights(
+            features, targets, confidence,
+        )
+        return loss_value, confidence
 
     def train(
-        self, inputs_train: np.ndarray, targets_train: np.ndarray,
-        inputs_valid: Union[np.ndarray, None] = None, targets_valid: Union[np.ndarray, None] = None,
-    ):
-        """Training with gradient descent.
+        self,
+        features_train: np.ndarray,
+        targets_train: np.ndarray,
+        features_valid: np.ndarray | None = None,
+        targets_valid: np.ndarray | None = None,
+    ) -> None:
+        """Train the model using gradient descent.
 
-        This iterative process aims to find the weights that minimize the cost function E(w).
+        This iterative process aims to find the weights that minimize the cost
+        function E(w).
+
+        Args:
+            features_train: NxD matrix
+            targets_train: NxK matrix
+            features_valid: MxD matrix
+            targets_valid: MxK matrix
         """
-        # TODO:
-        #  For each iteration from self.start_iteration to self.cfg.num_iterations:
-        #       - make gradient descent step (using self.__gradient_descent_step)
-        #       - compute metrics using the self.compute_metrics function
-        #       - logging value of cost function and metrics with self.params_logger.log_param()
-        #  Before training convert targets to one-hot encoded vectors using the self.one_hot_encoding function
-        #  Also you can compute metrics in validation set using inputs_valid and targets_valid args and
-        #  save best model params with self.save
-        #  You can add early stopping using metric (average precision or other) on the validation set:
-        #       - if there is no improvement after a given number of iterations, training can be stopped
-        raise NotImplementedError
+        targets_train_ohe = self._one_hot_encoding(targets_train)
+        targets_valid_ohe = self._one_hot_encoding(targets_valid)
+        for iteration in range(self._config.NUM_ITERATIONS):
+            loss_value, confidence = self._train_model(
+                features_train, targets_train_ohe,
+            )
+            metrics = self._get_metrics(
+                features_train, targets_train, confidence,
+            )
+            self._params_logger.log_param(
+                iteration, SetType.TRAIN, LoggingParamType.LOSS, loss_value,
+            )
+            self._params_logger.log_param(
+                iteration, SetType.TRAIN, LoggingParamType.METRIC, metrics,
+            )
+            if features_valid is not None and targets_valid is not None:
+                self._predict_and_log_valid(
+                    iteration,
+                    features_valid,
+                    targets_valid,
+                    targets_valid_ohe,
+                )
+            if self._is_stop_needed():
+                break
 
-    def __target_function_value(
+    def _predict_and_log_valid(
+        self,
+        iteration: int,
+        features_valid: np.ndarray,
+        targets_valid: np.ndarray,
+        targets_valid_ohe: np.ndarray,
+    ) -> None:
+        loss_value_valid = self._get_loss_value(
+            targets_valid_ohe, features_valid,
+        )
+        confidence_valid = self._get_model_confidence(features_valid)
+        metrics_valid = self._get_metrics(
+            features_valid, targets_valid, confidence_valid,
+        )
+        self._params_logger.log_param(
+            iteration,
+            SetType.VALIDATION,
+            LoggingParamType.LOSS,
+            loss_value_valid,
+        )
+        self._params_logger.log_param(
+            iteration,
+            SetType.VALIDATION,
+            LoggingParamType.METRIC,
+            metrics_valid,
+        )
+        if loss_value_valid > self._best_loss:
+            self._best_loss = loss_value_valid
+            self._save(iteration)
+
+    def _is_stop_needed(self) -> bool:
+        if self._config.ITERATIONS_WITHOUT_IMPROVEMENT > 0:
+            return (
+                self._iterations_without_improvement
+                >= self._config.ITERATIONS_WITHOUT_IMPROVEMENT
+            )
+        return False
+
+    def _get_loss_value(
         self,
         targets: np.ndarray,
-        inputs: Union[np.ndarray, None] = None,
-        z: Union[np.ndarray, None] = None,
+        features: Union[np.ndarray, None] = None,
+        prediction_without_softmax: Union[np.ndarray, None] = None,
         model_confidence: Union[np.ndarray, None] = None,
     ) -> float:
         """Target function.
@@ -287,7 +358,7 @@ class LogisticRegression(object):
         # TODO: Implement this function, it is possible to do it without loop using numpy
         raise NotImplementedError
 
-    def compute_metrics(
+    def _get_metrics(
         self, inputs: np.ndarray, targets: np.ndarray,
         model_confidence: Union[np.ndarray, None] = None,
     ):
@@ -295,7 +366,7 @@ class LogisticRegression(object):
         # TODO: Add calculation of metrics, e.g., accuracy, precision, recall, average precision, confusion matrix
         raise NotImplementedError
 
-    def one_hot_encoding(self, targets):
+    def _one_hot_encoding(self, targets):
         """Creates matrix of one-hot encoding vectors for input targets.
 
         One-hot encoding vector representation:
@@ -310,11 +381,11 @@ class LogisticRegression(object):
 
     def __call__(self, inputs: np.ndarray):
         """Returns model prediction."""
-        model_confidence = self.get_model_confidence(inputs)
+        model_confidence = self._get_model_confidence(inputs)
         predictions = np.argmax(model_confidence, axis=0)
         return predictions
 
-    def save(self, filepath):
+    def _save(self, filepath):
         """Saves trained model."""
         with open(os.path.join(self._checkpoints_dir, filepath), 'wb') as f:
             pickle.dump((self._weights, self._bias), f)
