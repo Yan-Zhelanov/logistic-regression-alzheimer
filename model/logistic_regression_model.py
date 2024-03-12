@@ -42,7 +42,7 @@ class LogisticRegression(object):
         # numpy.ndarray of shape (K, 1)
         self._bias = np.zeros((self._num_classes, 1))
         if self._config.WEIGHTS_INIT_TYPE is WeightsInitType.NORMAL:
-            self._weights_init_normal(**self._config.WEIGHTS_INIT_KWARGS)
+            self._init_weights_normal(**self._config.WEIGHTS_INIT_KWARGS)
         else:
             self._weights_init_uniform(**self._config.WEIGHTS_INIT_KWARGS)
         # Initialization of params logger
@@ -51,16 +51,19 @@ class LogisticRegression(object):
         self._checkpoints_dir = experiment_config.CHECKPOINTS_DIR
         self._save_iter = experiment_config.SAVE_MODEL_ITER
 
-    def _weights_init_normal(self, *args, **kwargs):
-        """Filling the weight matrix with values using a Normal distribution.
+    def _init_weights_normal(
+        self, mean: float = 0, scale: float = 0.01,
+    ) -> np.ndarray:
+        """Init the weight matrix with values using a Normal distribution.
 
         W ~ N(mu, sigma^2),
 
         where:
             - mu and sigma can be defined in self.cfg.weights_init_kwargs
         """
-        # TODO: Implement this method using np.random.normal
-        raise NotImplementedError
+        return np.random.normal(
+            mean, scale, size=(self._num_classes, self._dimension),
+        )
 
     def _weights_init_uniform(self, *args, **kwargs):
         """Filling the weight matrix with values using a Uniform distribution.
