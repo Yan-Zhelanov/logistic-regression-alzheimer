@@ -49,6 +49,10 @@ class ParamsLogger(object):
             )
         else:
             raise ValueError('Unknown parameters type')
+        print(
+            f'Iteration #{iteration} - {param_type.name.lower()}'
+            + f' = {metric_value} ({set_type.name.lower()})',
+        )
         self._save_param(set_type, param_type)
 
     def plot_params(self, param_type: LoggingParamType) -> None:
@@ -96,8 +100,13 @@ class ParamsLogger(object):
         self, set_type: SetType, param_type: LoggingParamType,
     ) -> None:
         """Save current state of parameters."""
-        param_history = getattr(self, f'{param_type.name}_history')
-        file_name = f'{set_type.name}_{param_type.name}_history.pickle'
+        if param_type is LoggingParamType.LOSS:
+            param_history = self._loss_history
+        else:
+            param_history = self._metric_history
+        file_name = (
+            f'{set_type.name.lower()}_{param_type.name.lower()}_history.pickle'
+        )
         params_path = os.path.join(self._config.PARAMS_DIR, file_name)
         with open(params_path, 'wb') as file:
             pickle.dump(param_history[set_type.name], file)
