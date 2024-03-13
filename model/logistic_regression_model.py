@@ -188,11 +188,11 @@ class LogisticRegression(object):
         if self._regularization_coefficient == 0:
             return (
                 (1 / features.shape[0])
-                * (model_confidence - targets) @ features
+                * (model_confidence - targets.T) @ features
             )
         return (
-            (1 / features.shape[0]) * (model_confidence - targets)
-            @ features.T + self._regularization_coefficient * self._weights
+            (1 / features.shape[0]) * (model_confidence - targets.T)
+            @ features + self._regularization_coefficient * self._weights
         )
 
     def _get_gradient_for_bias(
@@ -216,7 +216,10 @@ class LogisticRegression(object):
         Returns:
              np.ndarray: Kx1 matrix
         """
-        return np.mean(model_confidence - targets, axis=0)
+        return np.reshape(
+            np.mean(model_confidence.T - targets, axis=0),
+            (self._num_classes, 1),
+        )
 
     def _update_weights(
         self,
@@ -422,7 +425,7 @@ class LogisticRegression(object):
         exp_predictions = np.exp(prediction_without_softmax - max_prediction)
         sum_exp_predictions = np.sum(exp_predictions, axis=1, keepdims=True)
         log_exp_predictions = np.log(sum_exp_predictions)
-        errors = targets * (log_exp_predictions - prediction_without_softmax)
+        errors = targets * (log_exp_predictions - prediction_without_softmax).T
         return np.mean(errors)
 
     def _get_metrics(
