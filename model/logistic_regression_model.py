@@ -463,6 +463,7 @@ class LogisticRegression(object):
         Returns:
             np.ndarray: NxK matrix
         """
+        targets = targets.astype(int)
         one_hot_encoded_targets = np.zeros(
             (targets.shape[0], self._num_classes),
         )
