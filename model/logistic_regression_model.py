@@ -437,13 +437,14 @@ class LogisticRegression(object):
         """Metrics calculation."""
         if model_confidence is None:
             model_confidence = self._get_model_confidence(features)
+        predictions = np.argmax(model_confidence, axis=0)
         return {
-            'accuracy': get_accuracy_score(targets, model_confidence),
+            'accuracy': get_accuracy_score(targets, predictions),
             'average_precision': get_average_precision_score(
                 targets, model_confidence,
             ),
-            'precision': get_precision_score(targets, model_confidence),
-            'recall': get_recall_score(targets, model_confidence),
+            'precision': get_precision_score(targets, predictions),
+            'recall': get_recall_score(targets, predictions),
         }
 
     def _convert_using_ohe(self, targets: np.ndarray) -> np.ndarray:
