@@ -40,8 +40,8 @@ def get_precision_score(targets: np.ndarray, predictions: np.ndarray) -> float:
     Returns:
         float: Precision score.
     """
-    true_positive = np.sum((targets == predictions)[targets == 1])
-    false_positive = np.sum((targets != predictions)[targets == 0])
+    true_positive = np.sum((targets == predictions[1])[targets == 1])
+    false_positive = np.sum((targets != predictions[1])[targets == 0])
     return true_positive / (true_positive + false_positive)
 
 
@@ -62,8 +62,8 @@ def get_recall_score(targets: np.ndarray, predictions: np.ndarray) -> float:
     Returns:
         float: Recall score.
     """
-    true_positive = np.sum((targets == predictions)[targets == 1])
-    false_negative = np.sum((targets != predictions)[targets == 1])
+    true_positive = np.sum((targets == predictions[1])[targets == 1])
+    false_negative = np.sum((targets != predictions[0])[targets == 1])
     return true_positive / (true_positive + false_negative)
 
 
