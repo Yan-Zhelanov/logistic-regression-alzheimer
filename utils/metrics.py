@@ -42,6 +42,8 @@ def get_precision_score(targets: np.ndarray, predictions: np.ndarray) -> float:
     """
     true_positive = np.sum((targets == predictions[1])[targets == 1])
     false_positive = np.sum((targets != predictions[1])[targets == 0])
+    if true_positive + false_positive == 0:
+        return 0
     return true_positive / (true_positive + false_positive)
 
 
