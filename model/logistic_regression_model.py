@@ -35,19 +35,8 @@ class LogisticRegression(object):
         self._regularization_coefficient = (
             self._config.REGULARIZATION_COEFFICIENT
         )
-        # Initialization of weights and bias
-        # numpy.ndarray of shape (K, D)
-        if self._config.WEIGHTS_INIT_TYPE is WeightsInitType.NORMAL:
-            self._weights = self._get_weights_normal(
-                **self._config.WEIGHTS_INIT_KWARGS,
-            )
-        else:
-            self._weights = self._get_weights_uniform(
-                **self._config.WEIGHTS_INIT_KWARGS,
-            )
-        # Initialize bias with zeros if self.cfg.bias_zeros_init is True
-        # numpy.ndarray of shape (K, 1)
-        self._bias = np.zeros((self._num_classes, 1))
+        self._weights = self._get_weights()
+        self._bias = self._get_bias()
         # Initialization of params logger
         self._params_logger = ParamsLogger(experiment_config)
         self._start_iteration = self.prepare_model(experiment_config)
@@ -56,8 +45,38 @@ class LogisticRegression(object):
         self._best_loss: int | float = 0
         self._iterations_without_improvement = 0
 
+    def _get_weights(self) -> np.ndarray:
+        """Get the initial values of the weights.
+
+        Returns:
+            numpy.ndarray of shape (K, D)
+        """
+        if self._config.WEIGHTS_INIT_TYPE is WeightsInitType.NORMAL:
+            return self._get_weights_normal(
+                **self._config.WEIGHTS_INIT_KWARGS, size=self._dimension,
+            )
+        return self._get_weights_uniform(
+            **self._config.WEIGHTS_INIT_KWARGS, size=self._dimension,
+        )
+
+    def _get_bias(self) -> np.ndarray:
+        """Get the initial values of the bias.
+
+        Returns:
+            numpy.ndarray of shape (K, 1)
+        """
+        if self._config.BIAS_ZEROS_INIT:
+            return np.zeros((self._num_classes, 1))
+        if self._config.WEIGHTS_INIT_TYPE is WeightsInitType.NORMAL:
+            return self._get_weights_normal(
+                **self._config.WEIGHTS_INIT_KWARGS, size=1,
+            )
+        return self._get_weights_uniform(
+            **self._config.WEIGHTS_INIT_KWARGS, size=1,
+        )
+
     def _get_weights_normal(
-        self, mean: float = 0, scale: float = 0.01,
+        self, mean: float = 0, scale: float = 0.01, size: int = 1,
     ) -> np.ndarray:
         """Init the weight matrix with values using a Normal distribution.
 
@@ -67,10 +86,12 @@ class LogisticRegression(object):
             - mu and sigma can be defined in self.cfg.weights_init_kwargs
         """
         return np.random.normal(
-            mean, scale, size=(self._num_classes, self._dimension),
+            mean, scale, size=(self._num_classes, size),
         )
 
-    def _get_weights_uniform(self, low: float, high: float) -> np.ndarray:
+    def _get_weights_uniform(
+        self, low: float, high: float, size: int = 1,
+    ) -> np.ndarray:
         """Init the weight matrix with values using a Uniform distribution.
 
         W ~ U(a, b),
@@ -79,7 +100,7 @@ class LogisticRegression(object):
             - a and b can be defined in self.cfg.weights_init_kwargs
         """
         return np.random.uniform(
-            low, high, size=(self._num_classes, self._dimension),
+            low, high, size=(self._num_classes, size),
         )
 
     def _get_model_output(self, features: np.ndarray) -> np.ndarray:
