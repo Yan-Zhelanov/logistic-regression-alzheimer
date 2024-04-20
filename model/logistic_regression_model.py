@@ -141,15 +141,14 @@ class LogisticRegression(object):
         exponentiation: z_j = z_j - max(z_j),
 
         Args:
-            model_output (np.ndarray): The model output before softmax
+            predictions (np.ndarray): The model output before softmax.
 
         Returns:
-            np.ndarray: KxN matrix - the softmax probabilities
+            np.ndarray: KxN matrix - the softmax probabilities.
         """
-        predictions = predictions - np.max(predictions, axis=1, keepdims=True)
+        predictions = predictions - np.max(predictions, axis=0)
         exp_predictions = np.exp(predictions)
-        sum_exp_predictions = np.sum(exp_predictions, axis=1, keepdims=True)
-        return exp_predictions / sum_exp_predictions
+        return exp_predictions / np.sum(exp_predictions, axis=0)
 
     def _get_model_confidence(self, features: np.ndarray) -> np.ndarray:
         """Calculate model confidence.
