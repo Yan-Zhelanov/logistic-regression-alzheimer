@@ -283,7 +283,7 @@ class LogisticRegression(object):
             np.ndarray: the model output after softmax
         """
         confidence = self._get_model_confidence(features)
-        loss_value = self._get_loss_value(
+        loss_value = self._get_loss(
             targets, features,
         )
         self._update_weights(
@@ -375,7 +375,7 @@ class LogisticRegression(object):
         targets_valid: np.ndarray,
         targets_valid_ohe: np.ndarray,
     ) -> tuple[float, float]:
-        return self._get_loss_value(
+        return self._get_loss(
             targets_valid_ohe, features_valid,
         ), self._get_average_precision(
             targets_valid, features_valid,
@@ -415,7 +415,7 @@ class LogisticRegression(object):
             )
         return False
 
-    def _get_loss_value(
+    def _get_loss(
         self,
         targets: np.ndarray,
         features: Union[np.ndarray, None] = None,
