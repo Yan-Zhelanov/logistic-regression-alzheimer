@@ -144,8 +144,8 @@ def get_average_precision_score(
             - P_n and R_n are the precision and recall at the n-th threshold
 
     Args:
-        targets: True labels.
-        scores: Target scores.
+        targets: True labels of size N.
+        scores: Target scores of size N.
 
     Returns:
         float: Average precision score.
