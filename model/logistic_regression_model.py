@@ -3,6 +3,7 @@ import pickle
 from typing import Union, cast
 
 import numpy as np
+from tqdm import tqdm
 
 from config.experiment_config import ExperimentConfig
 from config.params_config import ParamsConfig
@@ -309,59 +310,99 @@ class LogisticRegression(object):
             targets_valid: MxK matrix
         """
         targets_train_ohe = self._convert_using_ohe(targets_train)
-        for iteration in range(self._config.NUM_ITERATIONS):
-            loss_value, confidence = self._train_model(
+        targets_valid_ohe = (
+            None if targets_valid is None
+            else self._convert_using_ohe(targets_valid)
+        )
+        with_valid = features_valid is not None and targets_valid is not None
+        range_bar = tqdm(
+            range(self._config.NUM_ITERATIONS),
+            total=self._config.NUM_ITERATIONS,
+        )
+        for iteration in range_bar:
+            loss_train, confidence = self._train_model(
                 features_train, targets_train_ohe,
             )
-            metrics = self._get_metrics(
-                features_train, targets_train, confidence,
+            average_precision_train = self._get_average_precision(
+                targets_train, confidence=confidence,
+            )
+            range_bar.set_description(
+                f'Train loss: {loss_train};'
+                + f' Train AP:{average_precision_train}; ',
             )
             self._params_logger.log_param(
-                iteration, SetType.TRAIN, LoggingParamType.LOSS, loss_value,
+                iteration, SetType.TRAIN, LoggingParamType.LOSS, loss_train,
             )
             self._params_logger.log_param(
                 iteration,
                 SetType.TRAIN,
                 LoggingParamType.METRIC,
-                metrics['accuracy'],
+                average_precision_train,
             )
-            if features_valid is not None and targets_valid is not None:
-                self._predict_and_log_valid(
+            if with_valid:
+                loss_valid, average_precision_valid = self._predict_valid(
+                    features_valid=cast(np.ndarray, features_valid),
+                    targets_valid=cast(np.ndarray, targets_valid),
+                    targets_valid_ohe=cast(np.ndarray, targets_valid_ohe),
+                )
+                self._params_logger.log_param(
                     iteration,
-                    features_valid,
-                    targets_valid,
+                    SetType.VALIDATION,
+                    LoggingParamType.LOSS,
+                    loss_valid,
+                )
+                self._params_logger.log_param(
+                    iteration,
+                    SetType.VALIDATION,
+                    LoggingParamType.METRIC,
+                    average_precision_valid,
+                )
+                range_bar.set_description(
+                    f'Train Loss: {loss_train};'
+                    + f' Train AP:{average_precision_train}; '
+                    + f'Valid Loss: {loss_valid};'
+                    + f' Valid AP:{average_precision_valid}; ',
+                )
+                self._update_iterations_without_improvement(
+                    iteration, loss_train,
                 )
             if self._is_stop_needed():
                 break
 
-    def _predict_and_log_valid(
+    def _predict_valid(
         self,
-        iteration: int,
         features_valid: np.ndarray,
         targets_valid: np.ndarray,
-    ) -> None:
-        targets_valid_ohe = self._convert_using_ohe(targets_valid)
-        loss_value_valid = self._get_loss_value(
+        targets_valid_ohe: np.ndarray,
+    ) -> tuple[float, float]:
+        return self._get_loss_value(
             targets_valid_ohe, features_valid,
+        ), self._get_average_precision(
+            targets_valid, features_valid,
         )
-        confidence_valid = self._get_model_confidence(features_valid)
-        metrics_valid = self._get_metrics(
-            features_valid, targets_valid, confidence_valid,
-        )
-        self._params_logger.log_param(
-            iteration,
-            SetType.VALIDATION,
-            LoggingParamType.LOSS,
-            loss_value_valid,
-        )
-        self._params_logger.log_param(
-            iteration,
-            SetType.VALIDATION,
-            LoggingParamType.METRIC,
-            metrics_valid['accuracy'],
-        )
-        if loss_value_valid > self._best_loss:
-            self._best_loss = loss_value_valid
+
+    def _get_average_precision(
+        self,
+        targets: np.ndarray,
+        features: np.ndarray | None = None,
+        confidence: np.ndarray | None = None,
+    ) -> float:
+        if features is None and confidence is None:
+            raise ValueError(
+                'Features and confidence cannot be None at the same time!',
+            )
+        if confidence is None:
+            confidence = self._get_model_confidence(cast(np.ndarray, features))
+        return get_average_precision_score(targets, confidence[-1, :])
+
+    def _update_iterations_without_improvement(
+        self,
+        iteration: int,
+        loss_valid: float,
+    ) -> None:
+        if loss_valid < self._best_loss:
+            self._iterations_without_improvement = 0
+            self._best_loss = loss_valid
             self._save(f'best_loss_{iteration}.pickle')
 
     def _is_stop_needed(self) -> bool:
