@@ -355,9 +355,7 @@ class LogisticRegression(object):
                     + f'\tTrain AP:{average_precision_train}; '
                     + f'\tValid AP:{average_precision_valid}\t',
                 )
-                self._update_iterations_without_improvement(
-                    iteration, loss_train,
-                )
+                self._update_iterations_without_improvement(loss_train)
             else:
                 range_bar.set_description(
                     f'Train loss: {loss_train};'
@@ -394,14 +392,11 @@ class LogisticRegression(object):
         return get_average_precision_score(targets, confidence[-1, :])
 
     def _update_iterations_without_improvement(
-        self,
-        iteration: int,
-        loss_valid: float,
+        self, loss_valid: float,
     ) -> None:
         if loss_valid < self._best_loss:
             self._iterations_without_improvement = 0
             self._best_loss = loss_valid
-            self._save(f'best_loss_{iteration}.pickle')
         else:
             self._iterations_without_improvement += 1
 
