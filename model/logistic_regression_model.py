@@ -315,20 +315,13 @@ class LogisticRegression(object):
             else self._convert_using_ohe(targets_valid)
         )
         with_valid = features_valid is not None and targets_valid is not None
-        range_bar = tqdm(
-            range(self._config.NUM_ITERATIONS),
-            total=self._config.NUM_ITERATIONS,
-        )
+        range_bar = tqdm(range(self._config.NUM_ITERATIONS))
         for iteration in range_bar:
             loss_train, confidence = self._train_model(
                 features_train, targets_train_ohe,
             )
             average_precision_train = self._get_average_precision(
                 targets_train, confidence=confidence,
-            )
-            range_bar.set_description(
-                f'Train loss: {loss_train};'
-                + f' Train AP:{average_precision_train}; ',
             )
             self._params_logger.log_param(
                 iteration, SetType.TRAIN, LoggingParamType.LOSS, loss_train,
@@ -359,13 +352,18 @@ class LogisticRegression(object):
                 )
                 range_bar.set_description(
                     f'Train Loss: {loss_train};'
-                    + f' Train AP:{average_precision_train}; '
-                    + f'Valid Loss: {loss_valid};'
-                    + f' Valid AP:{average_precision_valid}; ',
+                    + f'\tTrain AP:{average_precision_train}; '
+                    + f'\tValid AP:{average_precision_valid}\t',
                 )
                 self._update_iterations_without_improvement(
                     iteration, loss_train,
                 )
+            else:
+                range_bar.set_description(
+                    f'Train loss: {loss_train};'
+                    + f'\tTrain AP:{average_precision_train}; ',
+                )
+            print()
             if self._is_stop_needed():
                 break
 
