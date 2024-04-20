@@ -474,14 +474,15 @@ class LogisticRegression(object):
             prediction_without_softmax = self._get_model_output(
                 cast(np.ndarray, features),
             )
-        max_prediction = np.max(
-            prediction_without_softmax, axis=1, keepdims=True,
+        max_prediction = np.max(prediction_without_softmax, axis=0)
+        prediction_without_softmax -= max_prediction
+        log_predictions = np.log(
+            np.sum(np.exp(prediction_without_softmax), axis=0),
         )
-        exp_predictions = np.exp(prediction_without_softmax - max_prediction)
-        sum_exp_predictions = np.sum(exp_predictions, axis=1, keepdims=True)
-        log_exp_predictions = np.log(sum_exp_predictions)
-        errors = targets * (log_exp_predictions - prediction_without_softmax).T
-        return np.mean(errors)
+        errors = targets.T * (
+            log_predictions - prediction_without_softmax
+        )
+        return np.mean(np.sum(errors, axis=0))
 
     def _get_metrics(
         self,
