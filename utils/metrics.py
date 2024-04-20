@@ -89,7 +89,7 @@ def get_confusion_matrix(
     """
     count_classes = len(np.unique(targets))
     confusion_matrix = np.zeros((count_classes, count_classes))
-    np.add.at(confusion_matrix, (targets, predictions), 1)
+    np.add.at(confusion_matrix, (targets.astype(int), predictions), 1)
     return confusion_matrix
 
 
