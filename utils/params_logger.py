@@ -49,10 +49,6 @@ class ParamsLogger(object):
             )
         else:
             raise ValueError('Unknown parameters type')
-        print(
-            f'Iteration #{iteration} - {param_type.name.lower()}'
-            + f' = {metric_value} ({set_type.name.lower()})',
-        )
         self._save_param(set_type, param_type)
 
     def plot_params(self, param_type: LoggingParamType) -> None:
