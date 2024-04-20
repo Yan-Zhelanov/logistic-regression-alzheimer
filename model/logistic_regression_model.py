@@ -404,6 +404,8 @@ class LogisticRegression(object):
             self._iterations_without_improvement = 0
             self._best_loss = loss_valid
             self._save(f'best_loss_{iteration}.pickle')
+        else:
+            self._iterations_without_improvement += 1
 
     def _is_stop_needed(self) -> bool:
         if self._config.ITERATIONS_WITHOUT_IMPROVEMENT > 0:
