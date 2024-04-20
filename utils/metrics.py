@@ -107,22 +107,28 @@ def get_precision_recall_curve(
         recall (np.ndarray): recall values
         thresholds (np.ndarray): thresholds
     """
-    thresholds = np.unique(scores)[::-1]
-    precisions = np.array([0])
-    recalls = np.array([0])
-    for threshold in thresholds:
-        predictions = scores >= threshold
-        count_predicted_positives = np.sum(predictions)
-        if count_predicted_positives:
-            precisions = np.append(
-                precisions, get_precision_score(targets, predictions),
-            )
-        else:
-            precisions = np.append(precisions, 0)
-        recalls = np.append(recalls, get_recall_score(targets, predictions))
-    np.append(precisions, 0)
-    np.append(recalls, 1)
-    precisions = np.flip(np.maximum.accumulate(np.flip(precisions)))
+    scores_sorted_indices = np.argsort(scores)[::-1]
+    sorted_scores = scores[scores_sorted_indices]
+    sorted_targets = targets[scores_sorted_indices]
+    thresholds, first_occurrences, prediction_counts = np.unique(
+        sorted_scores, return_index=True, return_counts=True,
+    )
+    first_occurrences = first_occurrences[::-1]
+    prediction_counts = prediction_counts[::-1]
+    threshold_new_true_positives = np.add.reduceat(
+        sorted_targets, first_occurrences,
+    )
+    true_positives = np.cumsum(threshold_new_true_positives)
+    predicted_positives = np.cumsum(prediction_counts)
+    count_true_positives = true_positives[-1]
+    precisions = true_positives / predicted_positives
+    recalls = true_positives / count_true_positives
+    precisions = np.concatenate(([1], precisions, [0]))
+    recalls = np.concatenate(([0], recalls, [1]))
+    for index, precision in enumerate(reversed(precisions), start=1):
+        precisions[- index + 1] = np.maximum(
+            precisions[- index + 1], precision,
+        )
     return precisions, recalls, thresholds
 
 
