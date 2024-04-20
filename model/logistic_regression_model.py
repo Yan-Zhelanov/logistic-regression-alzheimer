@@ -205,11 +205,6 @@ class LogisticRegression(object):
         Returns:
             np.ndarray: KxD matrix
         """
-        if self._regularization_coefficient == 0:
-            return (
-                (1 / features.shape[0])
-                * (model_confidence - targets.T) @ features
-            )
         return (
             (1 / features.shape[0]) * (model_confidence - targets.T)
             @ features + self._regularization_coefficient * self._weights
