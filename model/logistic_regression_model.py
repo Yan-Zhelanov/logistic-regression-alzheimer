@@ -44,6 +44,7 @@ class LogisticRegression(object):
         self._checkpoints_dir = experiment_config.CHECKPOINTS_DIR
         self._save_iter = experiment_config.SAVE_MODEL_ITER
         self._best_loss: int | float = float('inf')
+        self._best_valid_ap: int | float = 0
         self._iterations_without_improvement = 0
 
     def _get_weights(self) -> np.ndarray:
@@ -356,6 +357,7 @@ class LogisticRegression(object):
                     + f'\tValid AP:{average_precision_valid}\t',
                 )
                 self._update_iterations_without_improvement(loss_train)
+                self._save_best_model_if_need(average_precision_valid)
             else:
                 range_bar.set_description(
                     f'Train loss: {loss_train};'
@@ -399,6 +401,11 @@ class LogisticRegression(object):
             self._best_loss = loss_valid
         else:
             self._iterations_without_improvement += 1
+
+    def _save_best_model_if_need(self, average_precision_valid: float) -> None:
+        if average_precision_valid > self._best_valid_ap:
+            self._save(f'best_model_{average_precision_valid:.3f}.pickle')
+            self._best_valid_ap = average_precision_valid
 
     def _is_stop_needed(self) -> bool:
         if self._config.ITERATIONS_WITHOUT_IMPROVEMENT > 0:
