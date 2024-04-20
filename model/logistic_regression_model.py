@@ -42,7 +42,7 @@ class LogisticRegression(object):
         self._start_iteration = self.prepare_model(experiment_config)
         self._checkpoints_dir = experiment_config.CHECKPOINTS_DIR
         self._save_iter = experiment_config.SAVE_MODEL_ITER
-        self._best_loss: int | float = 0
+        self._best_loss: int | float = float('inf')
         self._iterations_without_improvement = 0
 
     def _get_weights(self) -> np.ndarray:
