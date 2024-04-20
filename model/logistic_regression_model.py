@@ -231,10 +231,7 @@ class LogisticRegression(object):
         Returns:
              np.ndarray: Kx1 matrix
         """
-        return np.reshape(
-            np.mean(model_confidence.T - targets, axis=0),
-            (self._num_classes, 1),
-        )
+        return np.mean(model_confidence - targets.T, axis=1, keepdims=True)
 
     def _update_weights(
         self,
