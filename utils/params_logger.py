@@ -111,7 +111,9 @@ class ParamsLogger(object):
         self, set_type: SetType, param_type: LoggingParamType,
     ) -> dict[str, list]:
         """Load saved state of parameters."""
-        file_name = f'{set_type.name}_{param_type.name}_history.pickle'
+        file_name = (
+            f'{set_type.name.lower()}_{param_type.name.lower()}_history.pickle'
+        )
         params_path = os.path.join(self._config.PARAMS_DIR, file_name)
         if os.path.exists(params_path):
             with open(params_path, 'rb') as file:
@@ -125,7 +127,7 @@ class ParamsLogger(object):
         self, param_type: LoggingParamType,
     ) -> dict[str, list]:
         """Gets parameters history for current experiment."""
-        param_history = getattr(self, f'{param_type.name}_history')
+        param_history = getattr(self, f'_{param_type.name.lower()}_history')
         for set_type in (SetType.TRAIN, SetType.VALIDATION):
             if not param_history[set_type.name]:
                 param_history[set_type.name] = self._load_param(
