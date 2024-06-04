@@ -12,7 +12,7 @@ class ExperimentConfig(object):
     PARAMS_DIR = os.path.join(LOGS_DIR, EXPERIMENT_NAME, 'params')
     PLOTS_DIR = os.path.join(LOGS_DIR, EXPERIMENT_NAME, 'plots')
     CHECKPOINTS_DIR = os.path.join(LOGS_DIR, EXPERIMENT_NAME, 'checkpoints')
-    SAVE_MODEL_ITER = 10
+    SAVE_MODEL_ITER = 100
     LOAD_MODEL = False
     LOAD_MODEL_EPOCH = -1
     LOAD_MODEL_PATH = os.path.join(
