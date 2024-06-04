@@ -404,7 +404,7 @@ class LogisticRegression(object):
 
     def _save_best_model_if_need(self, average_precision_valid: float) -> None:
         if average_precision_valid > self._best_valid_ap:
-            self._save(f'best_model_{average_precision_valid:.3f}.pickle')
+            self._save(f'best_model_{average_precision_valid:.2f}.pickle')
             self._best_valid_ap = average_precision_valid
 
     def _is_stop_needed(self) -> bool:
