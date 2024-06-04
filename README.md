@@ -1,3 +1,4 @@
-# Logistic Regression (academic data)
+# Logistic Regression (Academic Data)
 
-[Ссылка на соревнование в Kaggle](https://www.kaggle.com/t/4ea305d5efb345deb2c2fa3c430b430a) для оценки результатов вашей модели на наборе данных "Alzheimer Dataset" (количество submits за день - 1)
+## Introduction
+This project is an implementation of the logistic regression algorithm using pure numpy on the academic data of the alzheimer dataset.
