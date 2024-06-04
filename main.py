@@ -6,12 +6,19 @@ from config.params_config import ParamsConfig
 from dataset.alzheimer_dataset import AlzheimerDatasetPreprocessor
 from model.logistic_regression_model import LogisticRegression
 from utils.enums import SetType
+from utils.preprocessing import ImageDataPreprocessing, PreprocessingType
 
 
 def train() -> None:
     dataset = AlzheimerDatasetPreprocessor(DataConfig())
     train_data = dataset.get_preprocessed_data(SetType.TRAIN)
     valid_data = dataset.get_preprocessed_data(SetType.VALIDATION)
+    preprocessing = ImageDataPreprocessing(
+        PreprocessingType.NORMALIZATION, DataConfig(), with_flattening=False,
+    )
+    preprocessing.fit(train_data['features'])
+    train_data['features'] = preprocessing.preprocess(train_data['features'])
+    valid_data['features'] = preprocessing.preprocess(valid_data['features'])
     model = LogisticRegression(ParamsConfig(), ExperimentConfig())
     model.train(
         train_data['features'],
