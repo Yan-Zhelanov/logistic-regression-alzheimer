@@ -13,6 +13,7 @@ class ImageDataPreprocessing(object):
         self,
         preprocess_type: PreprocessingType,
         data_config: DataConfig,
+        with_flattening: bool = True,
     ) -> None:
         self._preprocess_type = preprocess_type
         self._data_config = data_config
@@ -20,6 +21,7 @@ class ImageDataPreprocessing(object):
         self._max: IntOrFloat = 0
         self._mean: IntOrFloat = 0
         self._std: IntOrFloat = 0
+        self._with_flattening = with_flattening
 
     def fit(self, features: np.ndarray) -> None:
         """Initialize preprocessing function on training data.
@@ -27,7 +29,9 @@ class ImageDataPreprocessing(object):
         Args:
             features: feature array.
         """
-        flattened_features = self._flatten(features)
+        flattened_features = features
+        if self._with_flattening:
+            flattened_features = self._flatten(features)
         self._mean = np.mean(flattened_features)
         self._std = np.std(flattened_features)
         self._min = np.min(flattened_features)
@@ -35,7 +39,9 @@ class ImageDataPreprocessing(object):
 
     def preprocess(self, features: np.ndarray) -> np.ndarray:
         """Return preprocessed data."""
-        flattened_features = self._flatten(features)
+        flattened_features = features
+        if self._with_flattening:
+            flattened_features = self._flatten(features)
         if self._preprocess_type is PreprocessingType.NORMALIZATION:
             return self._normalize(flattened_features)
         return self._standardizate(flattened_features)
