@@ -14,6 +14,7 @@ class ExperimentConfig(object):
     CHECKPOINTS_DIR = os.path.join(LOGS_DIR, EXPERIMENT_NAME, 'checkpoints')
     SAVE_MODEL_ITER = 100
     LOAD_MODEL = False
+    LOAD_MODEL_EPOCH = -1
     LOAD_MODEL_SCORE = '0.60'
     LOAD_MODEL_PATH = os.path.join(
         CHECKPOINTS_DIR, f'best_model_{LOAD_MODEL_SCORE}.pickle',
